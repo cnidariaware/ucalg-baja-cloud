@@ -56,6 +56,30 @@ pub struct OrderSuccess {
     testing: Option<OrderRequest>,
 }
 
+/// Recieves incoming merch orders and writes them to a database
+///
+/// # Params
+///
+/// - data_state - the database mutex
+/// - order_request - The order information, including the coupon, customer info, and items in the order
+/// - req - The details about the incoming request/headers
+///
+/// # Returns
+///
+/// - weather the writing of the order was successfull
+///
+/// # Example
+///
+/// ```rust
+/// // how a user would use this function, replace ex_crate with actual path to use function
+/// // this is how a public but internal module would be used by an outside user (ex_crate needs to be changed)
+/// //let result = crate::front_of_house::other_module_linked_in_modrs::example_funct(5, 10);
+/// //assert_eq!(result, 15);
+/// ```
+/// # Author (s)
+///
+/// - Brock <brock@darkicewolf50.dev>
+/// semi-permanent email, do not need to respond but try to be a good alumni
 #[post("/recieve_order")]
 pub async fn recieve_order(
     data_state: Data<Mutex<Database>>,
@@ -94,8 +118,6 @@ pub async fn recieve_order(
         order_total += order.price;
     }
 
-    order_total *= 1.05;
-
     // let customer_sheet = book.get_sheet_by_name("customer_info").unwrap();
     database.write_customer(
         &order_request.customer_info,
@@ -115,6 +137,31 @@ pub async fn recieve_order(
 }
 
 impl Database {
+    /// writes merch items to the orders sheet of the xl database
+    ///
+    /// # Params
+    ///
+    /// - order -The merch item that will be written into the row.
+    /// - orders_sheet - The sheet where merch orders are written to.
+    /// - row_insert - The integer of the row which the merch item should be written into.
+    ///
+    /// # Returns
+    ///
+    /// - the value 1 or the program errors.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// // how a user would use this function, replace ex_crate with actual path to use function
+    /// // this is how a public but internal module would be used by an outside user (ex_crate needs to be changed)
+    /// // let result = crate::front_of_house::other_module_linked_in_modrs::example_funct(5, 10);
+    /// // assert_eq!(result, 15);
+    /// ```
+    /// # Author (s)
+    ///
+    /// - Name <semiperminant@exmaplemail.com>
+    /// - Another Example <different@examplemail.com>
+    /// semi-permanent email, do not need to respond but try to be a good alumni
     pub fn write_order(
         &self,
         order: &OrderItem,
