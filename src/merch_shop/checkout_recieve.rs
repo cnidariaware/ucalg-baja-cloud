@@ -14,7 +14,7 @@ use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CustomerInfo {
-    pub order_id: Option<String>,
+    pub order_id: Option<ArcString>,
     email: String,
     phone: Option<String>,
     name: String,
@@ -33,7 +33,7 @@ pub struct CustomerInfo {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OrderItem {
-    order_id: Option<String>,
+    order_id: Option<ArcString>,
     item_id: String,
     colour: Option<String>,
     size: Option<String>,
@@ -45,7 +45,7 @@ pub struct OrderItem {
 pub struct OrderRequest {
     customer_info: CustomerInfo,
     cart_items: Vec<OrderItem>,
-    order_id: Option<String>,
+    order_id: Option<ArcString>,
     coupon_code: Option<String>,
 }
 
@@ -124,17 +124,17 @@ impl Database {
         // order id
         orders_sheet
             .get_cell_mut(format!("A{}", row_insert))
-            .set_value_string(order.order_id.clone().unwrap_or_default());
+            .set_value_string(order.order_id.as_deref().unwrap_or_default());
 
         // item id
         orders_sheet
             .get_cell_mut(format!("B{}", row_insert))
-            .set_value_string(order.item_id.clone());
+            .set_value_string(order.item_id.as_str());
 
         // size
         orders_sheet
             .get_cell_mut(format!("C{}", row_insert))
-            .set_value(order.size.clone().unwrap_or_default());
+            .set_value(order.size.as_deref().unwrap_or_default());
 
         // quantity
         orders_sheet
@@ -144,7 +144,7 @@ impl Database {
         // colour
         orders_sheet
             .get_cell_mut(format!("E{}", row_insert))
-            .set_value_string(order.colour.clone().unwrap_or_default());
+            .set_value_string(order.colour.as_deref().unwrap_or_default());
 
         // price
         orders_sheet
@@ -166,16 +166,16 @@ impl Database {
         // order id
         customer_sheet
             .get_cell_mut(format!("A{}", customer_row_insert))
-            .set_value(customer_info.order_id.clone().unwrap_or_default());
+            .set_value(customer_info.order_id.as_deref().unwrap_or_default());
 
         // email
         customer_sheet
             .get_cell_mut(format!("B{}", customer_row_insert))
-            .set_value(&customer_info.email);
+            .set_value_string(&customer_info.email);
         // phone
         customer_sheet
             .get_cell_mut(format!("C{}", customer_row_insert))
-            .set_value_string(customer_info.phone.clone().unwrap_or_default());
+            .set_value_string(customer_info.phone.as_deref().unwrap_or_default());
         // name
         customer_sheet
             .get_cell_mut(format!("D{}", customer_row_insert))
@@ -183,7 +183,7 @@ impl Database {
         // subteam
         customer_sheet
             .get_cell_mut(format!("E{}", customer_row_insert))
-            .set_value_string(customer_info.sub_team.clone().unwrap_or_default());
+            .set_value_string(customer_info.sub_team.as_deref().unwrap_or_default());
 
         // Order Total
         customer_sheet
@@ -193,34 +193,44 @@ impl Database {
         // Coupon if input
         customer_sheet
             .get_cell_mut(format!("G{}", customer_row_insert))
-            .set_value_string(coupon.clone().unwrap_or_default());
+            .set_value_string(coupon.as_deref().unwrap_or_default());
 
         // shipping
 
         // shipping full name
         customer_sheet
             .get_cell_mut(format!("I{}", customer_row_insert))
-            .set_value_string(customer_info.ship_full_name.clone().unwrap_or_default());
+            .set_value_string(customer_info.ship_full_name.as_deref().unwrap_or_default());
 
         // shipping street address
         customer_sheet
             .get_cell_mut(format!("J{}", customer_row_insert))
-            .set_value_string(customer_info.ship_street_addr.clone().unwrap_or_default());
+            .set_value_string(
+                customer_info
+                    .ship_street_addr
+                    .as_deref()
+                    .unwrap_or_default(),
+            );
 
         // shipping unit number
         customer_sheet
             .get_cell_mut(format!("K{}", customer_row_insert))
-            .set_value_string(customer_info.ship_unit_number.clone().unwrap_or_default());
+            .set_value_string(
+                customer_info
+                    .ship_unit_number
+                    .as_deref()
+                    .unwrap_or_default(),
+            );
 
         // shipping city
         customer_sheet
             .get_cell_mut(format!("L{}", customer_row_insert))
-            .set_value_string(customer_info.ship_city.clone().unwrap_or_default());
+            .set_value_string(customer_info.ship_city.as_deref().unwrap_or_default());
 
         // shipping provice
         customer_sheet
             .get_cell_mut(format!("M{}", customer_row_insert))
-            .set_value_string(customer_info.ship_province.clone().unwrap_or_default());
+            .set_value_string(customer_info.ship_province.as_deref().unwrap_or_default());
 
         // shipping country
         customer_sheet
@@ -228,31 +238,40 @@ impl Database {
             .set_value_string(
                 customer_info
                     .ship_country
-                    .clone()
-                    .unwrap_or_else(|| "Canada".to_string())
-                    .to_string(),
+                    .as_deref()
+                    .unwrap_or_else(|| "Canada"),
             );
 
         // shipping postal code
         customer_sheet
             .get_cell_mut(format!("O{}", customer_row_insert))
-            .set_value_string(customer_info.ship_postal_code.clone().unwrap_or_default());
+            .set_value_string(
+                customer_info
+                    .ship_postal_code
+                    .as_deref()
+                    .unwrap_or_default(),
+            );
 
         // shipping phone number
         customer_sheet
             .get_cell_mut(format!("P{}", customer_row_insert))
-            .set_value_string(customer_info.ship_phone.clone().unwrap_or_default());
+            .set_value_string(customer_info.ship_phone.as_deref().unwrap_or_default());
 
         customer_sheet
             .get_cell_mut(format!("Q{}", customer_row_insert))
-            .set_value_string(customer_info.additional_notes.clone().unwrap_or_default());
+            .set_value_string(
+                customer_info
+                    .additional_notes
+                    .as_deref()
+                    .unwrap_or_default(),
+            );
     }
 }
 
 impl OrderRequest {
     pub fn give_uuid(&mut self) {
         if self.order_id == None {
-            let new_uuid = Uuid::new_v4().to_string();
+            let new_uuid: ArcString = Arc::from(Uuid::new_v4().to_string());
 
             self.order_id = Some(new_uuid.clone());
 
