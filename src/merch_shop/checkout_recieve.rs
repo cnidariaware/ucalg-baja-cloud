@@ -45,7 +45,7 @@ pub struct OrderItem {
 pub struct OrderRequest {
     customer_info: CustomerInfo,
     cart_items: Vec<OrderItem>,
-    order_id: Option<ArcString>,
+    pub order_id: Option<ArcString>,
     coupon_code: Option<String>,
 }
 
@@ -114,7 +114,8 @@ pub async fn recieve_order(
 
     // Writes all orders in the vec to the sheet
     for order in orders {
-        order_row_insert += database.write_order(&order, orders_sheet, &order_row_insert);
+        database.write_order(&order, orders_sheet, &order_row_insert);
+        order_row_insert += 1;
         order_total += order.price;
     }
 
@@ -147,7 +148,7 @@ impl Database {
     ///
     /// # Returns
     ///
-    /// - the value 1 or the program errors.
+    /// - unit type as the function cannot handle errors
     ///
     /// # Example
     ///
@@ -159,15 +160,14 @@ impl Database {
     /// ```
     /// # Author (s)
     ///
-    /// - Name <semiperminant@exmaplemail.com>
-    /// - Another Example <different@examplemail.com>
+    /// - Brock <brock@darkicewolf50.dev>
     /// semi-permanent email, do not need to respond but try to be a good alumni
     pub fn write_order(
         &self,
         order: &OrderItem,
         orders_sheet: &mut Worksheet,
         row_insert: &u32,
-    ) -> u32 {
+    ) -> () {
         // order id
         orders_sheet
             .get_cell_mut(format!("A{}", row_insert))
@@ -197,9 +197,34 @@ impl Database {
         orders_sheet
             .get_cell_mut(format!("F{}", row_insert))
             .set_value_number(order.price);
-        1
+        ()
     }
 
+    /// writes customer information to the customer sheet of the xl database
+    ///
+    /// # Params
+    ///
+    /// - customer_info - The shipping and contact information for the customer.
+    /// - order_total - The total of this order, which is identified by the order's uuid.
+    /// - coupon - a coupon string for flash sales and internal use
+    /// - customer_sheet - the xl sheet where these parameters are written
+    ///
+    /// # Returns
+    ///
+    /// - Unit as this function cannot handle errors, so it must succeed.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// // how a user would use this function, replace ex_crate with actual path to use function
+    /// // this is how a public but internal module would be used by an outside user (ex_crate needs to be changed)
+    /// // let result = crate::front_of_house::other_module_linked_in_modrs::example_funct(5, 10);
+    /// // assert_eq!(result, 15);
+    /// ```
+    /// # Author (s)
+    ///
+    /// - Brock <brock@darkicewolf50.dev>
+    /// semi-permanent email, do not need to respond but try to be a good alumni
     pub fn write_customer(
         &self,
         customer_info: &CustomerInfo,
@@ -316,8 +341,32 @@ impl Database {
 }
 
 impl OrderRequest {
+    /// Gives the struct a uuid
+    ///
+    /// # Params
+    ///
+    /// - self - An instance of the struct object.
+    ///
+    /// # Returns
+    ///
+    /// - Unit, this self assigns a uuid to the order struct.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use ucalg_baja_cloud::merch_shop::checkout_recieve::OrderRequest;
+    ///
+    /// let mut test_order = OrderRequest::_new_for_test();
+    /// test_order.give_uuid();
+    ///
+    /// assert!(test_order.order_id.is_some());
+    /// ```
+    /// # Author (s)
+    ///
+    /// - Brock <brock@darkicewolf50.dev>
+    /// semi-permanent email, do not need to respond but try to be a good alumni
     pub fn give_uuid(&mut self) {
-        if self.order_id == None {
+        if self.order_id.is_none() {
             let new_uuid: ArcString = Arc::from(Uuid::new_v4().to_string());
 
             self.order_id = Some(new_uuid.clone());
@@ -327,6 +376,39 @@ impl OrderRequest {
             for order_item in self.cart_items.iter_mut() {
                 order_item.order_id = Some(new_uuid.clone());
             }
+        }
+    }
+
+    // only for testing not a real function, only for testing the above function
+    pub fn _new_for_test() -> Self {
+        Self {
+            customer_info: CustomerInfo {
+                order_id: None,
+                email: "test@gmail.com".to_string(),
+                phone: Some("1234567890".to_string()),
+                name: "Tester".to_string(),
+                sub_team: None,
+                order_total: 1.00,
+                ship_full_name: None,
+                ship_street_addr: None,
+                ship_unit_number: None,
+                ship_city: None,
+                ship_province: None,
+                ship_country: None,
+                ship_postal_code: None,
+                ship_phone: None,
+                additional_notes: None,
+            },
+            cart_items: vec![OrderItem {
+                order_id: None,
+                item_id: "Test Merch".to_string(),
+                colour: None,
+                size: None,
+                quantity: 1,
+                price: 1.00,
+            }],
+            order_id: None,
+            coupon_code: None,
         }
     }
 }
