@@ -76,8 +76,8 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ${{ env.FORGEJO_REGISTRY }}
-          username: ${{ env.FORGEJO_ACTOR }}
-          password: ${{ env.FORGEJO_TOKEN }}
+          username: ${{ secrets.FORGEJO_ACTOR }}
+          password: ${{ secrets.FORGEJO_REGISTRY_TOKEN }}
 
       # Build and push "latest" tag
       - name: Build and push container (latest)
