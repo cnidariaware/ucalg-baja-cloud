@@ -14,6 +14,9 @@ on:
       - master
       - actionRework
 
+env:
+  FORGEJO_REGISTRY: forge.ucalgarybaja.ca
+
 # each workflow must have at least one job.
 # jobs run in parallel by default (we can change that).
 # each job groups together a series of steps to accomplish a purpose.
@@ -72,7 +75,7 @@ jobs:
       - name: Log into Forgejo Container Registry
         uses: docker/login-action@v3
         with:
-          registry: ${{ env.FORGEJO_SERVER_URL }}
+          registry: ${{ env.FORGEJO_REGISTRY }}
           username: ${{ env.FORGEJO_ACTOR }}
           password: ${{ env.FORGEJO_TOKEN }}
 
@@ -84,7 +87,7 @@ jobs:
           file: dockerfile
           push: true
           platforms: linux/amd64
-          tags: ${{ env.FORGEJO_SERVER_URL }}/${{ env.FORGEJO_REPOSITORY_OWNER }}/${{ env.FORGEJO_REPOSITORY }}:latest
+          tags: ${{ env.FORGEJO_REGISTRY }}/${{ env.FORGEJO_REPOSITORY_OWNER }}/${{ env.FORGEJO_REPOSITORY }}:latest
 
       # Build and push Git SHA tag
       - name: Build and push container (SHA)
@@ -94,10 +97,10 @@ jobs:
           file: dockerfile
           push: true
           platforms: linux/amd64
-          tags: ${{ env.FORGEJO_SERVER_URL }}/${{ env.FORGEJO_REPOSITORY_OWNER }}/${{ env.FORGEJO_REPOSITORY }}:${{ env.FORGEJO_SHA }}
+          tags: ${{ env.FORGEJO_REGISTRY }}/${{ env.FORGEJO_REPOSITORY_OWNER }}/${{ env.FORGEJO_REPOSITORY }}:${{ env.FORGEJO_SHA }}
 
       # Optional: Print pushed tags for verification
       - name: Show pushed tags
         run: |
-          echo "Latest tag: ${FORGEJO_SERVER_URL}/${FORGEJO_REPOSITORY_OWNER}/${FORGEJO_REPOSITORY}:latest"
-          echo "SHA tag: ${FORGEJO_SERVER_URL}/${FORGEJO_REPOSITORY_OWNER}/${FORGEJO_REPOSITORY}:${FORGEJO_SHA}"
+          echo "Latest tag: ${FORGEJO_REGISTRY}/${FORGEJO_REPOSITORY_OWNER}/${FORGEJO_REPOSITORY}:latest"
+          echo "SHA tag: ${FORGEJO_REGISTRY}/${FORGEJO_REPOSITORY_OWNER}/${FORGEJO_REPOSITORY}:${FORGEJO_SHA}"
