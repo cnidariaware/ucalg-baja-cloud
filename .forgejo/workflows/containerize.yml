@@ -12,7 +12,6 @@ on:
   push:
     branches:
       - master
-      - actionRework
 
 env:
   FORGEJO_REGISTRY: forge.ucalgarybaja.ca
