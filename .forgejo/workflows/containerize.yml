@@ -23,7 +23,7 @@ jobs:
     # if: ${{ github.ref == 'refs/heads/master' || github.event.pull_request.merged == true }} # Runs if it's a push to 'main' or a merged PR to 'main'
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           lfs: true
 
@@ -44,31 +44,34 @@ jobs:
       #     password: ${{ secrets.FORGEJO_REGISTRY_TOKEN }}
       #   id: forgejo-login
 
-      - name: Build & Publish for Forgejo CR (latest)
-        uses: https://data.forgejo.org/forgejo/forgejo-build-publish/build@v5.5.1
-        with:
-          forgejo: "${{ env.GITHUB_SERVER_URL }}"
-          owner: "${{ env.GITHUB_REPOSITORY_OWNER }}"
-          repository: "${{ steps.repository.outputs.value }}"
-          doer: "ucalgary-baja-releases"
-          release-version: "latest"
-          sha: "${{ github.sha }}"
-          token: "${{ secrets.FORGEJO_REGISTRY_TOKEN }}"
-          platforms: linux/amd64
-          dockerfile: dockerfile
+      - name: List Forgejo runner envs
+        run: printenv | sort
 
-      - name: Build & Publish for Forgejo CR (SHA)
-        uses: https://data.forgejo.org/forgejo/forgejo-build-publish/build@v5.5.1
-        with:
-          forgejo: "${{ env.GITHUB_SERVER_URL }}"
-          owner: "${{ env.GITHUB_REPOSITORY_OWNER }}"
-          repository: "${{ steps.repository.outputs.value }}"
-          doer: "ucalgary-baja-releases"
-          release-version: "${{ github.sha }}"
-          sha: "${{ github.sha }}"
-          token: "${{ secrets.FORGEJO_REGISTRY_TOKEN }}"
-          platforms: linux/amd64
-          dockerfile: dockerfile
+      # - name: Build & Publish for Forgejo CR (latest)
+      #   uses: https://data.forgejo.org/forgejo/forgejo-build-publish/build@v5.5.1
+      #   with:
+      #     forgejo: "${{ env.GITHUB_SERVER_URL }}"
+      #     owner: "${{ env.GITHUB_REPOSITORY_OWNER }}"
+      #     repository: "${{ steps.repository.outputs.value }}"
+      #     doer: "ucalgary-baja-releases"
+      #     release-version: "latest"
+      #     sha: "${{ github.sha }}"
+      #     token: "${{ secrets.FORGEJO_REGISTRY_TOKEN }}"
+      #     platforms: linux/amd64
+      #     dockerfile: dockerfile
+
+      # - name: Build & Publish for Forgejo CR (SHA)
+      #   uses: https://data.forgejo.org/forgejo/forgejo-build-publish/build@v5.5.1
+      #   with:
+      #     forgejo: "${{ env.GITHUB_SERVER_URL }}"
+      #     owner: "${{ env.GITHUB_REPOSITORY_OWNER }}"
+      #     repository: "${{ steps.repository.outputs.value }}"
+      #     doer: "ucalgary-baja-releases"
+      #     release-version: "${{ github.sha }}"
+      #     sha: "${{ github.sha }}"
+      #     token: "${{ secrets.FORGEJO_REGISTRY_TOKEN }}"
+      #     platforms: linux/amd64
+      #     dockerfile: dockerfile
 
       # - name: Publish To Forgejo Container Registry
       #   uses: https://data.forgejo.org/forgejo/forgejo-build-publish/publish@v5.5.1
