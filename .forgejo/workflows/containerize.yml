@@ -44,42 +44,6 @@ jobs:
       #     password: ${{ secrets.FORGEJO_REGISTRY_TOKEN }}
       #   id: forgejo-login
 
-      - name: List Forgejo runner envs
-        run: printenv | sort
-
-      # - name: Build & Publish for Forgejo CR (latest)
-      #   uses: https://data.forgejo.org/forgejo/forgejo-build-publish/build@v5.5.1
-      #   with:
-      #     forgejo: "${{ env.GITHUB_SERVER_URL }}"
-      #     owner: "${{ env.GITHUB_REPOSITORY_OWNER }}"
-      #     repository: "${{ steps.repository.outputs.value }}"
-      #     doer: "ucalgary-baja-releases"
-      #     release-version: "latest"
-      #     sha: "${{ github.sha }}"
-      #     token: "${{ secrets.FORGEJO_REGISTRY_TOKEN }}"
-      #     platforms: linux/amd64
-      #     dockerfile: dockerfile
-
-      # - name: Build & Publish for Forgejo CR (SHA)
-      #   uses: https://data.forgejo.org/forgejo/forgejo-build-publish/build@v5.5.1
-      #   with:
-      #     forgejo: "${{ env.GITHUB_SERVER_URL }}"
-      #     owner: "${{ env.GITHUB_REPOSITORY_OWNER }}"
-      #     repository: "${{ steps.repository.outputs.value }}"
-      #     doer: "ucalgary-baja-releases"
-      #     release-version: "${{ github.sha }}"
-      #     sha: "${{ github.sha }}"
-      #     token: "${{ secrets.FORGEJO_REGISTRY_TOKEN }}"
-      #     platforms: linux/amd64
-      #     dockerfile: dockerfile
-
-      # - name: Publish To Forgejo Container Registry
-      #   uses: https://data.forgejo.org/forgejo/forgejo-build-publish/publish@v5.5.1
-      #   with:
-      #     to-owner: "forgejo-experimental"
-      #     to-doer: "ucalgarybaja-releaes-team"
-      #     to-token: "${{ secrets.FORGEJO_REGISTRY_TOKEN }}"
-
       # - name: build container image # build the container
       #   run: docker compose build --no-cache
       #   id: docker-build
@@ -105,3 +69,39 @@ jobs:
       #     docker tag darkicewolf50/ucalg-baja-cloud:latest forge.ucalgarybaja.ca/ucalgary-baja/ucalg-baja-cloud:latest
       #     docker push forge.ucalgarybaja.ca/ucalgary-baja/ucalg-baja-cloud:latest
       #   if: ${{ steps.forgejo-login.outcome == 'success' && steps.docker-build.outcome == 'success' }}
+
+      # Log into Forgejo Container Registry
+      - name: Log into Forgejo Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.FORGEJO_SERVER_URL }}
+          username: ${{ env.FORGEJO_ACTOR }}
+          password: ${{ env.FORGEJO_TOKEN }}
+
+      # Build and push "latest" tag
+      - name: Build and push container (latest)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: dockerfile
+          push: true
+          platforms: linux/amd64
+          tags: |
+            ${{ env.FORGEJO_SERVER_URL }}/${{ env.FORGEJO_REPOSITORY_OWNER }}/${{ env.FORGEJO_REPOSITORY##*/ }}:latest
+
+      # Build and push Git SHA tag
+      - name: Build and push container (SHA)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: dockerfile
+          push: true
+          platforms: linux/amd64
+          tags: |
+            ${{ env.FORGEJO_SERVER_URL }}/${{ env.FORGEJO_REPOSITORY_OWNER }}/${{ env.FORGEJO_REPOSITORY##*/ }}:${{ env.FORGEJO_SHA }}
+
+      # Optional: Print the pushed tags for verification
+      - name: Show pushed tags
+        run: |
+          echo "Latest tag: ${{ env.FORGEJO_SERVER_URL }}/${{ env.FORGEJO_REPOSITORY_OWNER }}/${{ env.FORGEJO_REPOSITORY##*/ }}:latest"
+          echo "SHA tag: ${{ env.FORGEJO_SERVER_URL }}/${{ env.FORGEJO_REPOSITORY_OWNER }}/${{ env.FORGEJO_REPOSITORY##*/ }}:${{ env.FORGEJO_SHA }}"
