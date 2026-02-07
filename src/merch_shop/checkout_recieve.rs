@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use crate::{ArcString, database::Database};
 use actix_web::{
-    HttpRequest, Responder, post,
+    HttpRequest, HttpResponse, Responder, post,
     web::{self, Data},
 };
 use darkicewolf50_actix_setup::log_incoming_w_x;
@@ -60,22 +60,71 @@ pub struct OrderSuccess {
 ///
 /// # Params
 ///
-/// - data_state - the database mutex
+/// - data_state - The database mutex
 /// - order_request - The order information, including the coupon, customer info, and items in the order
 /// - req - The details about the incoming request/headers
 ///
 /// # Returns
 ///
-/// - weather the writing of the order was successfull
+/// - Whether the writing of the order was successfull
 ///
 /// # Example
 ///
 /// ```rust
-/// // how a user would use this function, replace ex_crate with actual path to use function
-/// // this is how a public but internal module would be used by an outside user (ex_crate needs to be changed)
-/// //let result = crate::front_of_house::other_module_linked_in_modrs::example_funct(5, 10);
-/// //assert_eq!(result, 15);
+/// use ucalg_baja_cloud::merch_shop::checkout_recieve::recieve_order;
+/// use actix_web::{test, web, App};
+/// use serde_json::{json, Value};
+/// use tokio::sync::Mutex;
+///
+/// #[actix_web::test]
+/// async fn test_recieve_order() {
+///     // Create a test database instance
+///     let database = Mutex::new(
+///         ucalg_baja_cloud::database::Database::default()
+///     );
+///
+///     let app = test::init_service(
+///         App::new()
+///             .app_data(web::Data::new(database))
+///             .service(recieve_order)
+///     ).await;
+///
+///     let req = test::TestRequest::post()
+///         .uri("/recieve_order")
+///         .set_json(json!({
+///             "customer_info": {
+///                 "order_id": "93616598-94e1-4b54-ae94-ccce8393d8bb",
+///                 "email": "brock.tomlinson@ucalgary.ca",
+///                 "phone": "2509466196",
+///                 "name": "Brock",
+///                 "sub_team": "Software"
+///             },
+///             "cart_items": [
+///                 {
+///                     "order_id": "93616598-94e1-4b54-ae94-ccce8393d8bb",
+///                     "item_id": "HERO-2020 HOODIES",
+///                     "size": "S",
+///                     "quantity": 3,
+///                     "price": 36.01
+///                 },
+///                 {
+///                     "order_id": "93616598-94e1-4b54-ae94-ccce8393d8bb",
+///                     "item_id": "HERO-2020 HOODIES",
+///                     "size": "XL",
+///                     "quantity": 10,
+///                     "price": 36.01
+///                 }
+///             ]
+///         }))
+///         .to_request();
+///
+///     let resp: Value = test::call_and_read_body_json(&app, req).await;
+///
+///     // Contract: endpoint always returns an object with `success`
+///     assert!(resp.get("success").is_some());
+/// }
 /// ```
+///
 /// # Author (s)
 ///
 /// - Brock <brock@darkicewolf50.dev>
@@ -86,14 +135,14 @@ pub async fn recieve_order(
     mut order_request: web::Json<OrderRequest>,
     req: HttpRequest,
 ) -> impl Responder {
-    log_incoming_w_x("POST", "/shop/recieve_order", req);
+    log_incoming_w_x("POST", "/shop/recieve_order", &req);
 
     let mut database = data_state.lock().await;
 
     match database.check_path_xl() {
         Ok(_) => (),
         Err(e) => {
-            return web::Json(OrderSuccess {
+            return HttpResponse::InternalServerError().json(OrderSuccess {
                 success: false,
                 failure: Some(e.into()),
                 testing: None,
@@ -130,7 +179,7 @@ pub async fn recieve_order(
     // save to workbook
     writer::xlsx::write(&book, &database.connection.as_ref().unwrap()).unwrap();
 
-    web::Json(OrderSuccess {
+    HttpResponse::Ok().json(OrderSuccess {
         success: true,
         failure: None,
         testing: Some(order_request.into_inner()),
@@ -354,12 +403,12 @@ impl OrderRequest {
     /// # Example
     ///
     /// ```
-    /// use ucalg_baja_cloud::merch_shop::checkout_recieve::OrderRequest;
+    /// use ucalg_baja_cloud::merch_shop::checkout_recieve::{OrderRequest, CustomerInfo, OrderItem};
     ///
     /// let mut test_order = OrderRequest::_new_for_test();
     /// test_order.give_uuid();
     ///
-    /// assert!(test_order.order_id.is_some());
+    /// assert!(test_order.get_order_id().is_some());
     /// ```
     /// # Author (s)
     ///
@@ -379,7 +428,36 @@ impl OrderRequest {
         }
     }
 
-    // only for testing not a real function, only for testing the above function
+    // Gets the order_id uuid
+    ///
+    /// # Params
+    ///
+    /// - self - An instance of the struct object.
+    ///
+    /// # Returns
+    ///
+    /// - The Option which may contain the order_id.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use ucalg_baja_cloud::merch_shop::checkout_recieve::{OrderRequest, CustomerInfo, OrderItem};
+    ///
+    /// let mut test_order = OrderRequest::_new_for_test();
+    /// test_order.give_uuid();
+    ///
+    /// assert!(test_order.get_order_id().is_some());
+    /// ```
+    /// # Author (s)
+    ///
+    /// - Brock <brock@darkicewolf50.dev>
+    /// semi-permanent email, do not need to respond but try to be a good alumni
+    pub fn get_order_id(&self) -> Option<ArcString> {
+        self.order_id.clone()
+    }
+
+    // only for testing not a real function, only for testing the above functions
+    // only present to get around rust's module privacy
     pub fn _new_for_test() -> Self {
         Self {
             customer_info: CustomerInfo {

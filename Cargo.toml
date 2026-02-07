@@ -6,13 +6,13 @@ edition = "2024"
 [dependencies]
 actix-web = "4.12.1"
 actix-cors = "0.7.1"
-tokio = { version = "1.48.0", features = ["sync", "macros"] }
+tokio = { version = "1.49.0", features = ["sync", "macros"] }
 serde = { version = "1.0.227", features = ["derive", "rc"] }
-serde_json = "1.0.145"
-serde_yaml_bw = "2.5.1"
-uuid = { version = "1.18.1", features = ["v4"] }
+serde_json = "1.0.149"
+serde_yaml_bw = "2.5.2"
+uuid = { version = "1.20.0", features = ["v4"] }
 umya-spreadsheet = "2.3.3"
-darkicewolf50-actix-setup = { version = "0.1.6", git = "https://forge.ucalgarybaja.ca/darkicewolf50/darkicewolf50-actix-setup.git", features = [
+darkicewolf50-actix-setup = { version = "0.1.7", git = "https://forge.ucalgarybaja.ca/darkicewolf50/darkicewolf50-actix-setup.git", features = [
     "full"
 ] }
 utoipa = { version = "5.4.0", features = ["actix_extras"] }

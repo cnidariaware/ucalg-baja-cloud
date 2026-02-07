@@ -1,4 +1,4 @@
-use actix_web::{HttpRequest, Responder, get, web};
+use actix_web::{HttpRequest, HttpResponse, Responder, get};
 use darkicewolf50_actix_setup::log_incoming_w_x;
 use serde::{Deserialize, Serialize};
 use serde_yaml_bw;
@@ -16,9 +16,48 @@ struct Sponsor {
     description_about_sponsor: Option<String>,
 }
 
+/// Gets the current sponsors with all of thier details, like sponsor website, tier, logo, etc. where it is displayed on the website
+///
+/// # Params
+///
+/// - req - The incoming request, inclluding the headers.
+///
+/// # Returns
+///
+/// - 200 response with the sponsor details.
+///
+/// # Example
+///
+/// ```rust
+/// use ucalg_baja_cloud::sponsors::get_sponsors;
+/// use actix_web::{test, App};
+/// use serde_json::Value;
+///
+/// #[actix_web::test]
+/// async fn test_get_sponsors() {
+///     let app = test::init_service(
+///         App::new().service(get_sponsors)
+///     ).await;
+///
+///     let req = test::TestRequest::get()
+///         .uri("/sponsors")
+///         .to_request();
+///
+///     let resp: Value = test::call_and_read_body_json(&app, req).await;
+///
+///     // We don't assert exact contents because the YAML file may vary,
+///     // but we do guarantee a JSON object is returned.
+///     assert!(resp.is_object());
+/// }
+/// ```
+///
+/// # Author (s)
+///
+/// - Brock <brock@darkicewolf50.dev>
+/// semi-permanent email, do not need to respond but try to be a good alumni
 #[get("/sponsors")]
 pub async fn get_sponsors(req: HttpRequest) -> impl Responder {
-    log_incoming_w_x("GET", "/sponsors", req);
+    log_incoming_w_x("GET", "/sponsors", &req);
 
     let sponsor_database_path = match env::var("SPONSOR_DATABASE") {
         Ok(path_value) => path_value,
@@ -30,5 +69,5 @@ pub async fn get_sponsors(req: HttpRequest) -> impl Responder {
     let yaml: HashMap<String, Vec<Sponsor>> = serde_yaml_bw::from_str(&yaml)
         .unwrap_or_else(|_| HashMap::from([("".to_string(), vec![])]));
 
-    web::Json(yaml)
+    HttpResponse::Ok().json(yaml)
 }
