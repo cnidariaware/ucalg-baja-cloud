@@ -12,6 +12,7 @@ on:
   push:
     branches:
       - master
+      - actionRework
 
 # each workflow must have at least one job.
 # jobs run in parallel by default (we can change that).
@@ -21,53 +22,83 @@ jobs:
     runs-on: ubuntu
     # if: ${{ github.ref == 'refs/heads/master' || github.event.pull_request.merged == true }} # Runs if it's a push to 'main' or a merged PR to 'main'
     steps:
-
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          lfs: true
 
         # log into docker hub
-      - name: Login to Dockerhub 
-        uses: docker/login-action@v2
+      # - name: Login to Dockerhub
+      #   uses: docker/login-action@v2
+      #   with:
+      #     username: ${{ secrets.DOCKER_USERNAME }} # Using secret for Docker username
+      #     password: ${{ secrets.DOCKER_PASSWORD }} # Using secret for Docker password
+      #   id: docker-login
+
+      # Login to Forgejo registry
+      # - name: Login to Forgejo Container Registry
+      #   uses: docker/login-action@v2
+      #   with:
+      #     registry: forge.ucalgarybaja.ca
+      #     username: ${{ secrets.FORGEJO_REGISTRY_USER }}
+      #     password: ${{ secrets.FORGEJO_REGISTRY_TOKEN }}
+      #   id: forgejo-login
+
+      - name: Build & Publish for Forgejo CR (latest)
+        uses: https://data.forgejo.org/forgejo/forgejo-build-publish/build@v5.5.1
         with:
-          username: ${{ secrets.DOCKER_USERNAME }} # Using secret for Docker username
-          password: ${{ secrets.DOCKER_PASSWORD }} # Using secret for Docker password
-        id: docker-login
-      
-        # Login to Forgejo registry
-      - name: Login to Forgejo Container Registry
-        uses: docker/login-action@v2
+          forgejo: "${{ env.GITHUB_SERVER_URL }}"
+          owner: "${{ env.GITHUB_REPOSITORY_OWNER }}"
+          repository: "${{ steps.repository.outputs.value }}"
+          doer: "ucalgary-baja-releases"
+          release-version: "latest"
+          sha: "${{ github.sha }}"
+          token: "${{ secrets.FORGEJO_REGISTRY_TOKEN }}"
+          platforms: linux/amd64
+          dockerfile: dockerfile
+
+      - name: Build & Publish for Forgejo CR (SHA)
+        uses: https://data.forgejo.org/forgejo/forgejo-build-publish/build@v5.5.1
         with:
-          registry: forge.ucalgarybaja.ca
-          username: ${{ secrets.FORGEJO_REGISTRY_USER }}
-          password: ${{ secrets.FORGEJO_REGISTRY_TOKEN }}
-        id: forgejo-login
-      
+          forgejo: "${{ env.GITHUB_SERVER_URL }}"
+          owner: "${{ env.GITHUB_REPOSITORY_OWNER }}"
+          repository: "${{ steps.repository.outputs.value }}"
+          doer: "ucalgary-baja-releases"
+          release-version: "${{ github.sha }}"
+          sha: "${{ github.sha }}"
+          token: "${{ secrets.FORGEJO_REGISTRY_TOKEN }}"
+          platforms: linux/amd64
+          dockerfile: dockerfile
 
-      - name: build container image # build the container
-        run: docker compose build --no-cache
-        id: docker-build
+      # - name: Publish To Forgejo Container Registry
+      #   uses: https://data.forgejo.org/forgejo/forgejo-build-publish/publish@v5.5.1
+      #   with:
+      #     to-owner: "forgejo-experimental"
+      #     to-doer: "ucalgarybaja-releaes-team"
+      #     to-token: "${{ secrets.FORGEJO_REGISTRY_TOKEN }}"
 
-      - name: Upload to Dockerhub
-        run: docker push darkicewolf50/ucalg-baja-cloud:latest
-        if: ${{ steps.docker-login.outcome == 'success' && steps.docker-build.outcome == 'success' }}
+      # - name: build container image # build the container
+      #   run: docker compose build --no-cache
+      #   id: docker-build
 
-      - name: Upload to Dockerhub with Git SHA tag
-        run: |
-          docker tag darkicewolf50/ucalg-baja-cloud:latest darkicewolf50/darkicewolf50cloud:${{ github.sha }}
-          docker push darkicewolf50/darkicewolf50cloud:${{ github.sha }}
-        if: ${{ steps.docker-login.outcome == 'success' && steps.docker-build.outcome == 'success' }}
+      # - name: Upload to Dockerhub
+      #   run: docker push darkicewolf50/ucalg-baja-cloud:latest
+      #   if: ${{ steps.docker-login.outcome == 'success' && steps.docker-build.outcome == 'success' }}
 
-      - name: Upload to Forgejo with Git SHA tag
-        run: |
-          docker tag darkicewolf50/ucalg-baja-cloud:latest forge.ucalgarybaja.ca/ucalgary-baja/ucalg-baja-cloud:${{ github.sha }}
-          docker push forge.ucalgarybaja.ca/ucalgary-baja/ucalg-baja-cloud:${{ github.sha }}
-        if: ${{ steps.forgejo-login.outcome == 'success' && steps.docker-build.outcome == 'success' }}
+      # - name: Upload to Dockerhub with Git SHA tag
+      #   run: |
+      #     docker tag darkicewolf50/ucalg-baja-cloud:latest darkicewolf50/darkicewolf50cloud:${{ github.sha }}
+      #     docker push darkicewolf50/darkicewolf50cloud:${{ github.sha }}
+      #   if: ${{ steps.docker-login.outcome == 'success' && steps.docker-build.outcome == 'success' }}
 
-      - name: Upload to Forgejo
-        run: |
-          docker tag darkicewolf50/ucalg-baja-cloud:latest forge.ucalgarybaja.ca/ucalgary-baja/ucalg-baja-cloud:latest
-          docker push forge.ucalgarybaja.ca/ucalgary-baja/ucalg-baja-cloud:latest
-        if: ${{ steps.forgejo-login.outcome == 'success' && steps.docker-build.outcome == 'success' }}
+      # - name: Upload to Forgejo with Git SHA tag
+      #   run: |
+      #     docker tag darkicewolf50/ucalg-baja-cloud:latest forge.ucalgarybaja.ca/ucalgary-baja/ucalg-baja-cloud:${{ github.sha }}
+      #     docker push forge.ucalgarybaja.ca/ucalgary-baja/ucalg-baja-cloud:${{ github.sha }}
+      #   if: ${{ steps.forgejo-login.outcome == 'success' && steps.docker-build.outcome == 'success' }}
 
-      
-      
+      # - name: Upload to Forgejo
+      #   run: |
+      #     docker tag darkicewolf50/ucalg-baja-cloud:latest forge.ucalgarybaja.ca/ucalgary-baja/ucalg-baja-cloud:latest
+      #     docker push forge.ucalgarybaja.ca/ucalgary-baja/ucalg-baja-cloud:latest
+      #   if: ${{ steps.forgejo-login.outcome == 'success' && steps.docker-build.outcome == 'success' }}
