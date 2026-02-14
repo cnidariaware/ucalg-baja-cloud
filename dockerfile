@@ -1,7 +1,7 @@
 # ----------- Build Stage -----------
 FROM rust:alpine AS builder
 
-WORKDIR /ucalg_baja_cloud
+WORKDIR /app
 
 # Install build dependencies
 RUN apk add --no-cache \
@@ -28,8 +28,8 @@ RUN apk add --no-cache \
     musl \
     libffi
     
-WORKDIR  /ucalg_baja_cloud
-COPY --from=builder  /ucalg_baja_cloud/target/release/ucalg-baja-cloud .
+WORKDIR  /app
+COPY --from=builder  /app/target/release/ucalg-baja-cloud .
     
 EXPOSE 6525
 CMD ["./ucalg-baja-cloud"]
