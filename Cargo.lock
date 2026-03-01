@@ -507,9 +507,9 @@ dependencies = [
 
 [[package]]
 name = "darkicewolf50-actix-setup"
-version = "0.2.0"
+version = "0.3.0"
 source = "sparse+https://forge.ucalgarybaja.ca/api/packages/darkicewolf50/cargo/"
-checksum = "24a981614444b6e98f93f31dc9ac50623d148c668e8320305df2f19b88dc58bb"
+checksum = "66b7eb78a8f1cdaefcd68ff6c35a93f13da264f2f337c377a661c8b042e265c8"
 dependencies = [
  "actix-web",
  "regex",
