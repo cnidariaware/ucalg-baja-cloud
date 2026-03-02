@@ -1,5 +1,5 @@
 use actix_web::{HttpRequest, HttpResponse, Responder, get};
-use darkicewolf50_actix_setup::log_incoming_w_x;
+use darkicewolf50_actix_setup::log_incoming_proxy;
 use serde::{Deserialize, Serialize};
 use serde_yaml_bw;
 use std::{collections::HashMap, env, fs};
@@ -57,7 +57,7 @@ struct Sponsor {
 /// semi-permanent email, do not need to respond but try to be a good alumni
 #[get("/sponsors")]
 pub async fn get_sponsors(req: HttpRequest) -> impl Responder {
-    log_incoming_w_x("GET", "/sponsors", &req);
+    log_incoming_proxy("GET", "/sponsors", &req);
 
     let sponsor_database_path = match env::var("SPONSOR_DATABASE") {
         Ok(path_value) => path_value,

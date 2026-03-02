@@ -5,7 +5,7 @@ use actix_web::{
     HttpRequest, HttpResponse, Responder, post,
     web::{self, Data},
 };
-use darkicewolf50_actix_setup::log_incoming_w_x;
+use darkicewolf50_actix_setup::log_incoming_proxy;
 use serde::{Deserialize, Serialize};
 // use serde_json::json;
 use tokio::sync::Mutex;
@@ -135,7 +135,7 @@ pub async fn recieve_order(
     mut order_request: web::Json<OrderRequest>,
     req: HttpRequest,
 ) -> impl Responder {
-    log_incoming_w_x("POST", "/shop/recieve_order", &req);
+    log_incoming_proxy("POST", "/shop/recieve_order", &req);
 
     let mut database = data_state.lock().await;
 

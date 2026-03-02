@@ -1,7 +1,7 @@
 use std::{env, fs};
 
 use actix_web::{HttpRequest, HttpResponse, Responder, get};
-use darkicewolf50_actix_setup::log_incoming_w_x;
+use darkicewolf50_actix_setup::log_incoming_proxy;
 use serde::{Deserialize, Serialize};
 // use serde_json::json;
 use serde_yaml_bw;
@@ -64,7 +64,7 @@ struct MerchItem {
 /// semi-permanent email, do not need to respond but try to be a good alumni
 #[get("/merch")]
 pub async fn get_merch(req: HttpRequest) -> impl Responder {
-    log_incoming_w_x("GET", "/shop/merch", &req);
+    log_incoming_proxy("GET", "/shop/merch", &req);
 
     let sponsor_get_path = match env::var("MERCH_ITEMS_AVAILABLE_DB") {
         Ok(path_value) => path_value,
