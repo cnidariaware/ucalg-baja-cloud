@@ -3,8 +3,7 @@ use std::{env, fs};
 use actix_web::{HttpRequest, HttpResponse, Responder, get};
 use darkicewolf50_actix_setup::log_incoming_proxy;
 use serde::{Deserialize, Serialize};
-// use serde_json::json;
-use serde_yaml_bw;
+use serde_saphyr;
 
 use crate::{ArcString, ArcVec};
 
@@ -73,7 +72,7 @@ pub async fn get_merch(req: HttpRequest) -> impl Responder {
 
     let yaml = fs::read_to_string(sponsor_get_path).unwrap_or_else(|_| "".to_string());
 
-    let yaml: ArcVec<MerchItem> = serde_yaml_bw::from_str(&yaml)
+    let yaml: ArcVec<MerchItem> = serde_saphyr::from_str(&yaml)
         .unwrap_or_else(|_| vec![])
         .into();
 
