@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use actix_files::NamedFile;
-use actix_web::{HttpRequest, HttpResponse, Responder, get};
+use actix_web::{HttpRequest, HttpResponse, Responder, get, http::header::ContentDisposition};
 use darkicewolf50_actix_setup::log_incoming_proxy;
 
 #[get("/sponsor-package")]
@@ -15,6 +15,10 @@ pub async fn get_sponsor_package(req: HttpRequest) -> impl Responder {
     );
     match NamedFile::open(package_path) {
         Ok(package) => package
+            .set_content_disposition(ContentDisposition {
+                disposition: actix_web::http::header::DispositionType::Inline,
+                parameters: vec![],
+            })
             .use_last_modified(true)
             .prefer_utf8(true)
             .into_response(&req),
