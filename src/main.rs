@@ -13,7 +13,7 @@ use utoipa_swagger_ui::SwaggerUi;
 async fn main() -> std::io::Result<()> {
     #[cfg(debug_assertions)]
     {
-        println!("Debug mode active!");
+        println!("Local Debug mode active!");
         println!("Running at http://localhost:6526");
     }
 

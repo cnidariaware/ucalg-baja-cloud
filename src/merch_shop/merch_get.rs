@@ -1,4 +1,4 @@
-use std::{env, fs};
+use std::{fs, path::PathBuf};
 
 use actix_web::{HttpRequest, HttpResponse, Responder, get};
 use darkicewolf50_actix_setup::log_incoming_proxy;
@@ -64,11 +64,12 @@ struct MerchItem {
 #[get("/merch")]
 pub async fn get_merch(req: HttpRequest) -> impl Responder {
     log_incoming_proxy("GET", "/shop/merch", &req);
-
-    let sponsor_get_path = match env::var("MERCH_ITEMS_AVAILABLE_DB") {
-        Ok(path_value) => path_value,
-        Err(_) => "./Database/merch.yaml".to_string(),
-    };
+    let sponsor_get_path = PathBuf::from(
+        #[cfg(debug_assertions)]
+        "./Database/merch.yaml",
+        #[cfg(not(debug_assertions))]
+        "/Shop/merch.yaml",
+    );
 
     let yaml = fs::read_to_string(sponsor_get_path).unwrap_or_else(|_| "".to_string());
 

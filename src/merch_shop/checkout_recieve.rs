@@ -19,7 +19,6 @@ pub struct CustomerInfo {
     phone: Option<String>,
     name: String,
     sub_team: Option<String>,
-    order_total: f32,
     ship_full_name: Option<String>,
     ship_street_addr: Option<String>,
     ship_unit_number: Option<String>,
@@ -137,14 +136,14 @@ pub async fn recieve_order(
 ) -> impl Responder {
     log_incoming_proxy("POST", "/shop/recieve_order", &req);
 
-    let mut database = data_state.lock().await;
+    let database = data_state.lock().await;
 
-    match database.check_path_xl() {
-        Ok(_) => (),
-        Err(e) => {
+    match database.connection.is_some() {
+        true => (),
+        false => {
             return HttpResponse::InternalServerError().json(OrderSuccess {
                 success: false,
-                failure: Some(e.into()),
+                failure: Some("Database doesnt exist, please try again later".to_string()),
                 testing: None,
             });
         }
@@ -466,7 +465,6 @@ impl OrderRequest {
                 phone: Some("1234567890".to_string()),
                 name: "Tester".to_string(),
                 sub_team: None,
-                order_total: 1.00,
                 ship_full_name: None,
                 ship_street_addr: None,
                 ship_unit_number: None,
