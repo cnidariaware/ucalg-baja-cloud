@@ -1,0 +1,36 @@
+#!/bin/bash
+# run this command on the repo to add it
+# git config core.hooksPath .githooks
+
+COMMIT_MSG_FILE=$1
+
+# Validate only the subject line (first line) — allow body/newlines after
+SUBJECT=$(head -n1 "$COMMIT_MSG_FILE")
+
+# Baja commit types
+TYPES="init|build|ci|docs|feat|fix|perf|refactor|style|test|chore|added|removed|merged"
+
+# Regex: type (scope) [!^]? : description (issue)?$
+REGEX="^($TYPES)(\([^)]+\))([!^])?: .+(\(#[0-9]+\))?$"
+
+if [[ ! $SUBJECT =~ $REGEX ]]; then
+  echo "----------------------------------------------------------------------------"
+  echo "❌ ERROR: Invalid commit message format!"
+  echo "Expected (first line only):"
+  echo "  <type>(scope): short description (#issue)"
+  echo "  <type>(scope)!: short description (#issue)   <- breaking change"
+  echo "  <type>(scope)^: short description (#issue)   <- breaking change (preferred)"
+  echo ""
+  echo "Valid examples:"
+  echo "  fix(ui): hotfix crash"
+  echo "  fix(ui)!: hotfix crash"
+  echo "  fix(ui)^: hotfix crash"
+  echo "  feat(backend)^: add caching layer (#42)"
+  echo "  refactor(auth)!: switch to JWT (#101)"
+  echo ""
+  echo "Full docs: https://forge.ucalgarybaja.ca/ucalgary-baja/Baja-Coding-Practices/src/branch/master/Git.md#git-cheat-sheet"
+  echo "----------------------------------------------------------------------------"
+  exit 1
+fi
+
+exit 0

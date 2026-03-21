@@ -13,7 +13,7 @@ use utoipa_swagger_ui::SwaggerUi;
 async fn main() -> std::io::Result<()> {
     #[cfg(debug_assertions)]
     {
-        println!("Debug mode active!");
+        println!("Local Debug mode active!");
         println!("Running at http://localhost:6526");
     }
 
@@ -37,7 +37,7 @@ async fn main() -> std::io::Result<()> {
                                          //.supports_credentials()
             )
             .app_data(database.clone())
-            .service(darkicewolf50_actix_setup::health_check_swagger)
+            .service(darkicewolf50_actix_setup::health_check_proxy_swagger)
             .service(get_sponsors)
             .service(
                 web::scope("/shop")

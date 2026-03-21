@@ -1,7 +1,4 @@
-use std::{
-    env,
-    path::{Path, PathBuf},
-};
+use std::path::PathBuf;
 use umya_spreadsheet::writer;
 
 pub struct Database {
@@ -9,11 +6,35 @@ pub struct Database {
 }
 
 impl Database {
+    /// Creates a new connection or xl sheet if one is not already present
+    ///
+    /// # Params
+    ///
+    /// - Nothing
+    ///
+    /// # Returns
+    ///
+    /// - Intializes the Database with a connection.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use ucalg_baja_cloud::database::Database;
+    /// let database = Database::new();
+    ///
+    /// assert!(database.get_connection().is_some());
+    /// ```
+    /// # Author (s)
+    ///
+    /// - Brock <brock@darkicewolf50.dev>
+    /// semi-permanent email, do not need to respond but try to be a good alumni
     pub fn new() -> Database {
-        let xl_path = match env::var("MERCH_DATABASE") {
-            Ok(path_value) => PathBuf::from(path_value),
-            Err(_) => PathBuf::from("./Database/Merch.xlsx"),
-        };
+        let xl_path = PathBuf::from(
+            #[cfg(debug_assertions)]
+            "./Database/Merch.xlsx",
+            #[cfg(not(debug_assertions))]
+            "/Merch/Merch.xlsx",
+        );
 
         let mut database = Database {
             connection: Some(xl_path),
@@ -28,22 +49,54 @@ impl Database {
         database
     }
 
-    pub fn check_path_xl(&mut self) -> Result<bool, String> {
-        let xl_path = Path::new("./Database/Merch.xlsx");
-
-        if Path::exists(&xl_path) {
-            self.connection = Some(xl_path.into());
-            return Ok(true);
-        } else {
-            // Recreating Path
-            self.connection = Some(xl_path.into());
-            match self.database_initialize_xl() {
-                Ok(_) => return Ok(true),
-                Err(e) => return Err(e),
-            }
-        }
+    /// Gets the private field connection
+    ///
+    /// # Params
+    ///
+    /// - A database instance
+    ///
+    /// # Returns
+    ///
+    /// - The connection private field.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use ucalg_baja_cloud::database::Database;
+    /// let database = Database::new();
+    ///
+    /// assert!(database.get_connection().is_some());
+    /// ```
+    /// # Author (s)
+    ///
+    /// - Brock <brock@darkicewolf50.dev>
+    /// semi-permanent email, do not need to respond but try to be a good alumni
+    pub fn get_connection(&self) -> &Option<PathBuf> {
+        &self.connection
     }
 
+    /// Initalizes the xl file with two sheets, one for order items, and the other for customer info.
+    ///
+    /// # Params
+    ///
+    /// - A database instance
+    ///
+    /// # Returns
+    ///
+    /// - Unit or a string explaining the error so it can be sent to to the front end or dealt with.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use ucalg_baja_cloud::database::Database;
+    /// let mut database = Database::new();
+    ///
+    /// assert!(database.database_initialize_xl().is_ok());
+    /// ```
+    /// # Author (s)
+    ///
+    /// - Brock <brock@darkicewolf50.dev>
+    /// semi-permanent email, do not need to respond but try to be a good alumni
     pub fn database_initialize_xl(&mut self) -> Result<(), String> {
         println!("Creating New Sheet");
 
