@@ -1,7 +1,4 @@
-use std::{
-    env,
-    path::{Path, PathBuf},
-};
+use std::path::PathBuf;
 use umya_spreadsheet::writer;
 
 pub struct Database {
@@ -32,10 +29,12 @@ impl Database {
     /// - Brock <brock@darkicewolf50.dev>
     /// semi-permanent email, do not need to respond but try to be a good alumni
     pub fn new() -> Database {
-        let xl_path = match env::var("MERCH_DATABASE") {
-            Ok(path_value) => PathBuf::from(path_value),
-            Err(_) => PathBuf::from("./Database/Merch.xlsx"),
-        };
+        let xl_path = PathBuf::from(
+            #[cfg(debug_assertions)]
+            "./Database/Merch.xlsx",
+            #[cfg(not(debug_assertions))]
+            "/Merch/Merch.xlsx",
+        );
 
         let mut database = Database {
             connection: Some(xl_path),
@@ -74,44 +73,6 @@ impl Database {
     /// semi-permanent email, do not need to respond but try to be a good alumni
     pub fn get_connection(&self) -> &Option<PathBuf> {
         &self.connection
-    }
-
-    /// Checks if the database is present, otherwise it creates one and initalizes it
-    ///
-    /// # Params
-    ///
-    /// - A database instance
-    ///
-    /// # Returns
-    ///
-    /// - Unit or an error string to send back to the front ned to explain the error.
-    ///
-    /// # Example
-    ///
-    /// ```rust
-    /// use ucalg_baja_cloud::database::Database;
-    /// let mut database = Database::new();
-    ///
-    /// assert!(database.check_path_xl().is_ok());
-    /// ```
-    /// # Author (s)
-    ///
-    /// - Brock <brock@darkicewolf50.dev>
-    /// semi-permanent email, do not need to respond but try to be a good alumni
-    pub fn check_path_xl(&mut self) -> Result<(), String> {
-        let xl_path = Path::new("./Database/Merch.xlsx");
-
-        if Path::exists(&xl_path) {
-            self.connection = Some(xl_path.into());
-            return Ok(());
-        } else {
-            // Recreating Path
-            self.connection = Some(xl_path.into());
-            match self.database_initialize_xl() {
-                Ok(_) => return Ok(()),
-                Err(e) => return Err(e),
-            }
-        }
     }
 
     /// Initalizes the xl file with two sheets, one for order items, and the other for customer info.

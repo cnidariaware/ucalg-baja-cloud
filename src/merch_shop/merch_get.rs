@@ -1,10 +1,8 @@
-use std::{env, fs};
+use std::{fs, path::PathBuf};
 
 use actix_web::{HttpRequest, HttpResponse, Responder, get};
 use darkicewolf50_actix_setup::log_incoming_proxy;
 use serde::{Deserialize, Serialize};
-// use serde_json::json;
-use serde_yaml_bw;
 
 use crate::{ArcString, ArcVec};
 
@@ -65,15 +63,16 @@ struct MerchItem {
 #[get("/merch")]
 pub async fn get_merch(req: HttpRequest) -> impl Responder {
     log_incoming_proxy("GET", "/shop/merch", &req);
-
-    let sponsor_get_path = match env::var("MERCH_ITEMS_AVAILABLE_DB") {
-        Ok(path_value) => path_value,
-        Err(_) => "./Database/merch.yaml".to_string(),
-    };
+    let sponsor_get_path = PathBuf::from(
+        #[cfg(debug_assertions)]
+        "./Database/merch.yaml",
+        #[cfg(not(debug_assertions))]
+        "/Shop/merch.yaml",
+    );
 
     let yaml = fs::read_to_string(sponsor_get_path).unwrap_or_else(|_| "".to_string());
 
-    let yaml: ArcVec<MerchItem> = serde_yaml_bw::from_str(&yaml)
+    let yaml: ArcVec<MerchItem> = serde_saphyr::from_str(&yaml)
         .unwrap_or_else(|_| vec![])
         .into();
 
