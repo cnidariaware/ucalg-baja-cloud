@@ -2453,6 +2453,7 @@ dependencies = [
  "darkicewolf50-actix-setup",
  "serde",
  "serde-saphyr",
+ "serde_json",
  "tokio",
  "umya-spreadsheet",
  "utoipa",
