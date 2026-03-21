@@ -5,7 +5,7 @@ use tokio::sync::Mutex;
 use ucalg_baja_cloud::ApiDoc;
 use ucalg_baja_cloud::database;
 use ucalg_baja_cloud::merch_shop;
-use ucalg_baja_cloud::sponsors::get_sponsors;
+use ucalg_baja_cloud::sponsors::{get_sponsor_package, get_sponsors};
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
@@ -39,6 +39,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(database.clone())
             .service(darkicewolf50_actix_setup::health_check_proxy_swagger)
             .service(get_sponsors)
+            .service(get_sponsor_package)
             .service(
                 web::scope("/shop")
                     .service(merch_shop::recieve_order)
