@@ -37,14 +37,18 @@ async fn main() -> std::io::Result<()> {
                                          //.supports_credentials()
             )
             .app_data(database.clone())
+            // GET /
             .service(darkicewolf50_actix_setup::health_check_proxy_swagger)
+            // GET /sponsors
             .service(get_sponsors)
             .service(
                 web::scope("/shop")
+                    // POST /recieve_order
                     .service(merch_shop::recieve_order)
+                    // GET /merch
                     .service(merch_shop::get_merch),
             )
-            // accessable at /swagger/
+            // GET /swagger/
             // swagger/OpenAPI docs
             .service(
                 SwaggerUi::new("/swagger/{_:.*}").url("/api-docs/openapi.json", ApiDoc::openapi()),
