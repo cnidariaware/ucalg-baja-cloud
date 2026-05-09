@@ -2,24 +2,9 @@ use std::{fs, path::PathBuf};
 
 use actix_web::{HttpRequest, HttpResponse, Responder, get};
 use darkicewolf50_actix_setup::log_incoming_proxy;
-use serde::{Deserialize, Serialize};
 
-use crate::{ArcString, ArcVec};
+use crate::utils::{ArcVec, merch::MerchItem};
 
-#[derive(Debug, Serialize, Deserialize)]
-struct MerchItem {
-    name: ArcString,
-    category: ArcString,
-    sizes_available: ArcVec<ArcString>,
-    price: f32,
-    colours: Vec<ArcString>,
-    description: ArcString,
-    url_images: ArcVec<ArcString>,
-    additional_details: ArcString,
-    material: ArcString,
-    cleaning: ArcString,
-    size_guide_img_url: ArcString,
-}
 
 /// Gets all of the merch items available, with all of the assciated detials,
 /// like size, colour images, etc. that are displayed on the merch shop.

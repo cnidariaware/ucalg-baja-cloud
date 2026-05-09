@@ -71,3 +71,9 @@ jobs:
           docker tag darkicewolf50/ucalg-baja-cloud:latest forge.ucalgarybaja.ca/ucalgary-baja/ucalg-baja-cloud:latest
           docker push forge.ucalgarybaja.ca/ucalgary-baja/ucalg-baja-cloud:latest
         if: ${{ steps.forgejo-login.outcome == 'success' && steps.docker-build.outcome == 'success' }}
+
+      - name: Aggressive Docker cleanup
+              if: always()
+              run: |
+                docker system prune -af --volumes
+                docker builder prune -af

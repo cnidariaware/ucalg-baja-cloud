@@ -1,59 +1,17 @@
 use std::sync::Arc;
 
-use crate::{ArcString, utils::database::Database};
+use crate::utils::{ArcString, database::Database};
 use actix_web::{
     HttpRequest, HttpResponse, Responder, post,
     web::{self, Data},
 };
 use darkicewolf50_actix_setup::log_incoming_proxy;
-use serde::{Deserialize, Serialize};
 // use serde_json::json;
 use tokio::sync::Mutex;
 use umya_spreadsheet::{Worksheet, reader, writer};
 use uuid::Uuid;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CustomerInfo {
-    pub order_id: Option<ArcString>,
-    email: String,
-    phone: Option<String>,
-    name: String,
-    sub_team: Option<String>,
-    ship_full_name: Option<String>,
-    ship_street_addr: Option<String>,
-    ship_unit_number: Option<String>,
-    ship_city: Option<String>,
-    ship_province: Option<String>,
-    ship_country: Option<String>,
-    ship_postal_code: Option<String>,
-    ship_phone: Option<String>,
-    additional_notes: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OrderItem {
-    order_id: Option<ArcString>,
-    item_id: String,
-    colour: Option<String>,
-    size: Option<String>,
-    quantity: u8,
-    price: f32,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OrderRequest {
-    customer_info: CustomerInfo,
-    cart_items: Vec<OrderItem>,
-    pub order_id: Option<ArcString>,
-    coupon_code: Option<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct OrderSuccess {
-    success: bool,
-    failure: Option<String>,
-    testing: Option<OrderRequest>,
-}
+use crate::utils::merch::{OrderRequest, OrderItem, OrderSuccess, CustomerInfo};
 
 /// Recieves incoming merch orders and writes them to a database
 ///

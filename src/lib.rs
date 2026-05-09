@@ -1,4 +1,4 @@
-use std::sync::Arc;
+
 
 // use actix_web::HttpResponse;
 // use actix_web::{Responder, get, web};
@@ -8,8 +8,10 @@ use std::sync::Arc;
 use utoipa::OpenApi;
 
 pub mod merch_shop;
+pub mod database;
 pub mod sponsors;
 pub mod utils;
+
 
 
 #[derive(OpenApi)]
@@ -20,5 +22,4 @@ pub mod utils;
 ))]
 pub struct ApiDoc;
 
-pub type ArcString = Arc<str>;
-pub type ArcVec<T> = Arc<[T]>;
+
