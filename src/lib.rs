@@ -9,8 +9,8 @@ use utoipa::OpenApi;
 
 pub mod merch_shop;
 pub mod sponsors;
+pub mod utils;
 
-pub mod database;
 
 #[derive(OpenApi)]
 #[openapi(paths(

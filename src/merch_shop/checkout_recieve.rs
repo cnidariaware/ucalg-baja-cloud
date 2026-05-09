@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{ArcString, database::Database};
+use crate::{ArcString, utils::database::Database};
 use actix_web::{
     HttpRequest, HttpResponse, Responder, post,
     web::{self, Data},

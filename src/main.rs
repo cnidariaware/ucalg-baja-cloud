@@ -3,7 +3,7 @@ use actix_web::{App, HttpServer, web};
 use tokio::sync::Mutex;
 
 use ucalg_baja_cloud::ApiDoc;
-use ucalg_baja_cloud::database;
+use ucalg_baja_cloud::utils::database;
 use ucalg_baja_cloud::merch_shop;
 use ucalg_baja_cloud::sponsors::get_sponsors;
 use utoipa::OpenApi;
