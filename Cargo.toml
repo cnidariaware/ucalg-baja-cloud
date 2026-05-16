@@ -10,7 +10,7 @@ tokio = { version = "1.50.0", features = ["sync", "macros"] }
 serde = { version = "1.0.228", features = ["derive", "rc"] }
 serde_json = "1.0.149"
 serde-saphyr = {version = "0.0.22", features = ["garde", "miette"]}
-uuid = { version = "1.22.0", features = ["v4"] }
+uuid = { version = "1.23.1", features = ["v7"] }
 umya-spreadsheet = "2.3.3"
 darkicewolf50-actix-setup = { version = "0.3.3", registry = "darkicewolf50-forge", features = [
     "full",

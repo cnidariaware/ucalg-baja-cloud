@@ -581,7 +581,7 @@ dependencies = [
 [[package]]
 name = "darkicewolf50-actix-setup"
 version = "0.3.3"
-source = "sparse+https://forge.ucalgarybaja.ca/api/packages/darkicewolf50/cargo/"
+source = "sparse+https://forge.ucalgarybaja.ca/api/packages/cnidariaware/cargo/"
 checksum = "cce5fe38ad5620e864d5416ac89baad4fa5c33b4da6c7d0535444efe3c416dc5"
 dependencies = [
  "actix-web",
@@ -2622,9 +2622,9 @@ dependencies = [
 
 [[package]]
 name = "uuid"
-version = "1.22.0"
+version = "1.23.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a68d3c8f01c0cfa54a75291d83601161799e4a89a39e0929f4b0354d88757a37"
+checksum = "ddd74a9687298c6858e9b88ec8935ec45d22e8fd5e6394fa1bd4e99a87789c76"
 dependencies = [
  "getrandom 0.4.1",
  "js-sys",

@@ -415,7 +415,7 @@ impl OrderRequest {
     /// semi-permanent email, do not need to respond but try to be a good alumni
     pub fn give_uuid(&mut self) {
         if self.order_id.is_none() {
-            let new_uuid: ArcString = Arc::from(Uuid::new_v4().to_string());
+            let new_uuid: ArcString = Arc::from(Uuid::now_v7().to_string());
 
             self.order_id = Some(new_uuid.clone());
 

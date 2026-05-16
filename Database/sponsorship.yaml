@@ -5,37 +5,41 @@ Diamond Tier:
     DescriptionAboutSponsor: The Schulich School of Engineering at the University of Calgary is the foundation of Baja at UCalgary. Schulich allows the team to be able to turn their dreams of creating an off-roading car into a reality.
 Platinum Tier:
   - SponsorName: darkicewolf50
-    LogoUrl: https://darkicewolf50.dev/favicon.ico
+    LogoUrl: https://darkicewolf50.dev/favicon.png
     Url: https://darkicewolf50.dev
-    DescriptionAboutSponsor:
+    DescriptionAboutSponsor: I dont like this guy
 Gold Tier:
   - SponsorName: Suri
     LogoUrl: https://lh5.googleusercontent.com/WJsBsmcLypQhY0MMOLQtJSGFXrLQqPKNc3502rYUGKPCq_SfS9CxuoB3n541Kn9bKPm2b5aixCnYsCVYZAts2Y8xvmOHWL3nnbKtWUkE1KoFYYQ4bXUlikfF0NPIynxhzQ=w1280
     Url: https://www.surimanufacturing.com/
     DescriptionAboutSponsor:
-  - SponsorName: SKF
-    LogoUrl: https://www.skf.com/v2/assets/img/skf-logo-white.svg
-    Url: https://www.skf.com/ca/en
+  - SponsorName: Solidworks
+    LogoUrl: https://www.3ds.com/assets/3ds-navigation/3DS_corporate-logo_solidworks.svg
+    Url: https://www.solidworks.com/
     DescriptionAboutSponsor:
   - SponsorName: WRMA
-    LogoUrl: https://wildrosemx.com/wp-content/uploads/2021/08/wild-rose-motocross-calgary-rasterized.png
+    LogoUrl: https://i0.wp.com/wildrosemx.com/wp-content/uploads/2024/07/SITE-HEADER-2.png?fit=400%2C200&ssl=1
     Url: https://wildrosemx.com/
     DescriptionAboutSponsor:
   - SponsorName: Trotec
     LogoUrl: https://www.troteclaser.com/_nuxt/img/logo-trotec.709e7ce.svg
     Url: https://www.troteclaser.com/en-ca/
     DescriptionAboutSponsor:
-  - SponsorName: Solidworks
-    LogoUrl: https://www.3ds.com/assets/3ds-navigation/3DS_corporate-logo_solidworks.svg
-    Url: https://www.solidworks.com/
+  - SponsorName: SKF
+    LogoUrl: https://www.skf.com/v2/assets/img/skf-logo-white.svg
+    Url: https://www.skf.com/ca/en
+    DescriptionAboutSponsor:
+  - SponsorName: KISSsoft
+    LogoUrl: https://www.kisssoft.com/images/kisssoft-logo.svg
+    Url: https://www.kisssoft.com/en
     DescriptionAboutSponsor:
 Silver Tier:
   - SponsorName: Encore Metals
-    LogoUrl: https://www.encoremetals.com/assets/images/logos/encore-metals-logo.png
+    LogoUrl: https://www.encoremetals.com/wp-content/uploads/2023/12/brand-logo-web-dark.webp
     Url: https://www.encoremetals.com/
-    DescriptionAboutSponsor: Metal supplier
+    DescriptionAboutSponsor:
   - SponsorName: CNOOC
-    LogoUrl: https://cnoocinternational.com/img/cnooc-logo.png
+    LogoUrl: https://cnoocinternational.com/wp-content/uploads/2025/01/cnooc-logo-2025-e1735841513450-768x212.png
     Url: https://cnoocinternational.com/
     DescriptionAboutSponsor:
   - SponsorName: Polaris
@@ -44,6 +48,6 @@ Silver Tier:
     DescriptionAboutSponsor:
 Bronze Tier:
   - SponsorName: Canada Action
-    LogoUrl:
-    Url:
+    LogoUrl: https://assets.nationbuilder.com/canadaaction/sites/1044/meta_images/original/logo_ca_tall_transparent_white.png?1713373970
+    Url: https://www.canadaaction.ca/
     DescriptionAboutSponsor:
