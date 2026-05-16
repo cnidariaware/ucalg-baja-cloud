@@ -13,6 +13,10 @@ pub mod sponsors;
 pub mod utils;
 
 
+pub mod core;
+
+// move below at some point
+// this is tech debt i dont want to feal with
 
 #[derive(OpenApi)]
 #[openapi(paths(

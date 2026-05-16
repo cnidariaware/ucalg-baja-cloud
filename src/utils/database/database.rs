@@ -1,7 +1,8 @@
-use std::path::PathBuf;
-use umya_spreadsheet::writer;
+// use std::path::PathBuf;
+use umya_spreadsheet::Worksheet;
+// writer
 
-use crate::utils::{ArcVec, merch::MerchItem};
+use crate::{core::error::BajaError, utils::{ArcVec, merch::{CustomerInfo, MerchItem, OrderItem}}};
 
 // pub struct Database {
 //     pub connection: Option<PathBuf>,
@@ -161,7 +162,7 @@ pub trait Database {
     
     fn new() -> Self;
 
-    fn init_database(&mut self) -> Result<(), String>;
+    fn init_database(&mut self) -> Result<(), BajaError>;
 
     fn get_connection (&self); // figure out return type later
 }
@@ -170,4 +171,24 @@ pub trait MerchDatabase: Database {
     fn init_merch_database(&mut self) -> Result<(), String>;
 
     fn get_merch(&self) -> ArcVec<MerchItem>;
+
+
+    fn write_order(
+        spread_sheet_config: &Self,
+        order: &OrderItem,
+        orders_sheet: &mut Worksheet,
+        row_insert: &u32,
+    );
+
+    fn write_customer(spread_sheet_config: &Self,
+        customer_info: &CustomerInfo,
+        order_total: &f32,
+        coupon: &Option<String>,
+        customer_sheet: &mut Worksheet,
+    );
 }
+
+// #[async_trait]
+// pub trait DataPort: Send + Sync + 'static {
+//     async fn
+// }
