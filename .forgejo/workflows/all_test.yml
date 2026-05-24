@@ -21,10 +21,25 @@ jobs:
     runs-on: ubuntu-*
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Check
         run: cargo check
 
       - name: All Tests
         run: cargo test --no-fail-fast --quiet
+
+      # --- Cleanup Steps ---
+      - name: Cleanup Rust Artifacts
+        if: always()
+        run: |
+          echo "Cleaning up Cargo build artifacts and cache..."
+
+          # Clean the workspace target directory completely
+          cargo clean
+
+          # Clean the global cargo registry cache inside the runner to save space
+          rm -rf ~/.cargo/registry/cache/
+          rm -rf ~/.cargo/registry/src/
+
+          echo "Cleanup complete."
