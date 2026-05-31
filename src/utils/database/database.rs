@@ -159,28 +159,28 @@ use crate::{core::error::BajaError, utils::{ArcVec, merch::{CustomerInfo, MerchI
 
 
 pub trait Database {
+    type Output;
     
     fn new() -> Self;
 
     fn init_database(&mut self) -> Result<(), BajaError>;
 
-    fn get_connection (&self); // figure out return type later
+    fn get_connection (&self) -> Self::Output; // figure out return type later
 }
 
 pub trait MerchDatabase: Database {
-    fn init_merch_database(&mut self) -> Result<(), String>;
+    fn init_merch_database(&mut self) -> Result<(), BajaError>;
 
     fn get_merch(&self) -> ArcVec<MerchItem>;
 
 
     fn write_order(
-        spread_sheet_config: &Self,
         order: &OrderItem,
         orders_sheet: &mut Worksheet,
         row_insert: &u32,
     );
 
-    fn write_customer(spread_sheet_config: &Self,
+    fn write_customer(
         customer_info: &CustomerInfo,
         order_total: &f32,
         coupon: &Option<String>,

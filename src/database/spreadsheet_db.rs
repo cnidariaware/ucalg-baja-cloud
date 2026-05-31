@@ -1,28 +1,116 @@
 
+use std::path::PathBuf;
+use std::sync::Arc;
+
+use umya_spreadsheet::Worksheet;
+use umya_spreadsheet::writer;
+
+use crate::core::error::BajaError;
+use crate::utils::ArcVec;
 use crate::utils::Database;
 use crate::utils::database::SpreadSheetConfig;
 use crate::utils::database::MerchDatabase;
+use crate::utils::merch::CustomerInfo;
+use crate::utils::merch::MerchItem;
+use crate::utils::merch::OrderItem;
 
 impl Database for SpreadSheetConfig {
+    type Output = Option<Arc<PathBuf>>;
+
     fn new() -> SpreadSheetConfig {
         todo!();
     }
 
-    fn get_connection (&self) {
-        todo!();
+    fn get_connection (&self) -> Self::Output {
+        return self.file_path.as_ref().map(|path| Arc::from(path.to_path_buf()))
     }
 
-    fn init_database(&mut self) -> Result<(), crate::core::error::BajaError> {
-        todo!();
+    fn init_database(&mut self) -> Result<(), BajaError> {
+        self.init_merch_database()
     }
 }
 impl MerchDatabase for SpreadSheetConfig {
-    fn init_merch_database(&mut self) -> Result<(), String> {
-        todo!();
+        /// Initalizes the xl file with two sheets, one for order items, and the other for customer info.
+        ///
+        /// # Params
+        ///
+        /// - A database instance
+        ///
+        /// # Returns
+        ///
+        /// - Unit or a string explaining the error so it can be sent to to the front end or dealt with.
+        ///
+        /// # Example
+        ///
+        /// ```rust
+        /// use ucalg_baja_cloud::database::Database;
+        /// let mut database = Database::new();
+        ///
+        /// assert!(database.database_initialize_xl().is_ok());
+        /// ```
+        /// # Author (s)
+        ///
+        /// - Brock <brock@cnidariaware.ca>
+        /// semi-permanent email, do not need to respond but try to be a good alumni
+        fn init_merch_database(&mut self) -> Result<(), BajaError> {
+        println!("Creating New Sheet");
+
+        let mut book = umya_spreadsheet::new_file_empty_worksheet();
+
+        let order_sheet = match book.new_sheet("orders") {
+            Ok(p) => p,
+            Err(_) => return Err(BajaError::Error("Cannot create orders sheet".to_string())),
+        };
+
+        order_sheet.get_cell_mut("A1").set_value("Order Id");
+        order_sheet.get_cell_mut("B1").set_value("Item Id");
+        order_sheet.get_cell_mut("C1").set_value("Size");
+        order_sheet.get_cell_mut("D1").set_value("Quantity");
+        order_sheet.get_cell_mut("E1").set_value("Colour");
+        order_sheet.get_cell_mut("F1").set_value("Price");
+
+        let custmer_sheet = match book.new_sheet("customer_info") {
+            Ok(p) => p,
+            Err(_) => return Err(BajaError::Error("Cannot create customer info sheet".to_string())),
+        };
+
+        custmer_sheet.get_cell_mut("A1").set_value("Order Id");
+        custmer_sheet.get_cell_mut("B1").set_value("Email");
+        custmer_sheet.get_cell_mut("C1").set_value("Phone");
+        custmer_sheet.get_cell_mut("D1").set_value("Name");
+        custmer_sheet.get_cell_mut("E1").set_value("Subteam");
+        custmer_sheet.get_cell_mut("F1").set_value("Order Total");
+        custmer_sheet.get_cell_mut("G1").set_value("Coupon Code");
+        custmer_sheet
+            .get_cell_mut("H1")
+            .set_value("Shipping Details");
+        custmer_sheet.get_cell_mut("I1").set_value("Full Name");
+        custmer_sheet.get_cell_mut("J1").set_value("Street Address");
+        custmer_sheet.get_cell_mut("K1").set_value("Unit Number");
+        custmer_sheet.get_cell_mut("L1").set_value("City");
+        custmer_sheet.get_cell_mut("M1").set_value("Province");
+        custmer_sheet
+            .get_cell_mut("N1")
+            .set_value("Country (Default Canada)");
+        custmer_sheet.get_cell_mut("O1").set_value("Postal Code");
+        custmer_sheet
+            .get_cell_mut("P1")
+            .set_value("Phone Number (shipping)");
+        custmer_sheet
+            .get_cell_mut("Q1")
+            .set_value("Additional Notes");
+
+        match writer::xlsx::write(&book, self.get_connection().as_ref().unwrap().clone().as_path()) {
+            Ok(_) => (),
+            Err(_) => return Err(BajaError::Error("Cannot create xl sheet".to_string())),
+        };
+
+        Ok(())
     }
 
-    fn get_merch(&self) -> crate::utils::ArcVec<crate::utils::merch::MerchItem> {
-        todo!();
+
+    fn get_merch(&self) -> ArcVec<MerchItem> {
+        panic!("No Merch Items Stored here, only orders");
     }
     /// writes merch items to the orders sheet of the xl database
     ///
@@ -49,7 +137,6 @@ impl MerchDatabase for SpreadSheetConfig {
     /// - Brock <brock@darkicewolf50.dev>
     /// semi-permanent email, do not need to respond but try to be a good alumni
     fn write_order(
-        spread_sheet_config: &SpreadSheetConfig,
         order: &OrderItem,
         orders_sheet: &mut Worksheet,
         row_insert: &u32,
@@ -111,8 +198,8 @@ impl MerchDatabase for SpreadSheetConfig {
     ///
     /// - Brock <brock@darkicewolf50.dev>
     /// semi-permanent email, do not need to respond but try to be a good alumni
-    pub fn write_customer(
-        spread_sheet_config: &SpreadSheetConfig,
+    fn write_customer(
+        // spread_sheet_config: &SpreadSheetConfig,
         customer_info: &CustomerInfo,
         order_total: &f32,
         coupon: &Option<String>,
