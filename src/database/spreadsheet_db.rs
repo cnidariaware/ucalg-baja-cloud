@@ -1,35 +1,83 @@
 
+use std::path::Path;
 use std::path::PathBuf;
 use std::sync::Arc;
 
+use tokio::sync::Mutex;
 use umya_spreadsheet::Worksheet;
 use umya_spreadsheet::writer;
 
-use crate::core::error::BajaError;
 use crate::utils::ArcVec;
 use crate::utils::Database;
-use crate::utils::database::SpreadSheetConfig;
+use crate::utils::database::{SpreadSheet, Sheets};
 use crate::utils::database::MerchDatabase;
 use crate::utils::merch::CustomerInfo;
 use crate::utils::merch::MerchItem;
 use crate::utils::merch::OrderItem;
+use crate::utils::types::BajaError;
+use crate::utils::types::BajaResult;
 
-impl Database for SpreadSheetConfig {
+use umya_spreadsheet::reader::xlsx::lazy_read;
+
+impl Database for SpreadSheet {
     type Output = Option<Arc<PathBuf>>;
 
-    fn new() -> SpreadSheetConfig {
-        todo!();
+    /// Creates a new connection or xl sheet if one is not already present
+    ///
+    /// # Params
+    ///
+    /// - Nothing
+    ///
+    /// # Returns
+    ///
+    /// - Intializes the Database with a connection.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use ucalg_baja_cloud::database::Database;
+    /// let database = Database::new();
+    ///
+    /// assert!(database.get_connection().is_some());
+    /// ```
+    /// # Author (s)
+    ///
+    /// - Brock <brock@darkicewolf50.dev>
+    /// semi-permanent email, do not need to respond but try to be a good alumni
+    fn new() -> SpreadSheet {
+        let xl_path = PathBuf::from(
+            #[cfg(debug_assertions)]
+            "./Database/Merch.xlsx",
+            #[cfg(not(debug_assertions))]
+            "/Merch/Merch.xlsx",
+        );
+
+        let mut database = SpreadSheet {
+            file_path: Some(xl_path),
+            sheets: None
+        };
+
+        if !&database.file_path.as_deref().unwrap().exists() {
+            let _ = database.init_merch_database();
+
+            database.new_sheets();
+            return database;
+        }
+
+        database.new_sheets();
+        database
     }
 
     fn get_connection (&self) -> Self::Output {
         return self.file_path.as_ref().map(|path| Arc::from(path.to_path_buf()))
     }
 
-    fn init_database(&mut self) -> Result<(), BajaError> {
+    fn init_database(&mut self) -> BajaResult<()> {
         self.init_merch_database()
     }
 }
-impl MerchDatabase for SpreadSheetConfig {
+
+impl MerchDatabase for SpreadSheet {
         /// Initalizes the xl file with two sheets, one for order items, and the other for customer info.
         ///
         /// # Params
@@ -52,7 +100,7 @@ impl MerchDatabase for SpreadSheetConfig {
         ///
         /// - Brock <brock@cnidariaware.ca>
         /// semi-permanent email, do not need to respond but try to be a good alumni
-        fn init_merch_database(&mut self) -> Result<(), BajaError> {
+        fn init_merch_database(&mut self) -> BajaResult<()> {
         println!("Creating New Sheet");
 
         let mut book = umya_spreadsheet::new_file_empty_worksheet();
@@ -310,5 +358,33 @@ impl MerchDatabase for SpreadSheetConfig {
                     .as_deref()
                     .unwrap_or_default(),
             );
+    }
+}
+
+
+impl SpreadSheet {
+    fn new_sheets(&mut self) {
+            Some(Arc::from(Mutex::from(
+                Sheets::new(
+                self.file_path.as_deref().unwrap()
+            ).unwrap())));
+    }  
+}
+
+impl Sheets {
+    fn new(file_path: &Path) -> Option<Self> {
+        Some(
+            Sheets {
+                orders_sheet: lazy_read(file_path)
+                .unwrap()
+                .get_sheet_by_name_mut("orders")
+                .cloned()
+                .unwrap(),
+                customer_sheet: lazy_read(file_path)
+                    .unwrap()
+                    .get_sheet_by_name_mut("customer_info")
+                    .cloned()
+                    .unwrap()
+            })
     }
 }

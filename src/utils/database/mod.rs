@@ -1,5 +1,5 @@
 mod database;
-mod config;
+mod db_types;
 
 pub use database::{Database, MerchDatabase};
-pub use config::{StorageConfig, YamlConfig, SpreadSheetConfig, PostgresConfig};
+pub use db_types::{StorageConfig, SpreadSheet, Sheets, Postgres};

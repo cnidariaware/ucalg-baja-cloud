@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::utils::{ArcString, database::Database};
+use crate::utils::{ArcString, database::{Database, StorageConfig}};
 use actix_web::{
     HttpRequest, HttpResponse, Responder, post,
     web::{self, Data},
@@ -88,7 +88,7 @@ use crate::utils::merch::{OrderRequest, OrderItem, OrderSuccess, CustomerInfo};
 /// semi-permanent email, do not need to respond but try to be a good alumni
 #[post("/recieve_order")]
 pub async fn recieve_order(
-    data_state: Data<Mutex<Database>>,
+    data_state: Data<Mutex<StorageConfig>>,
     mut order_request: web::Json<OrderRequest>,
     req: HttpRequest,
 ) -> impl Responder {

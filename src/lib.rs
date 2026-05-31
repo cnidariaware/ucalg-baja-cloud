@@ -1,19 +1,9 @@
-
-
-// use actix_web::HttpResponse;
-// use actix_web::{Responder, get, web};
-// use serde::{Deserialize, Serialize};
-// use serde_json::json;
-
 use utoipa::OpenApi;
 
 pub mod merch_shop;
 pub mod database;
 pub mod sponsors;
 pub mod utils;
-
-
-pub mod core;
 
 // move below at some point
 // this is tech debt i dont want to feal with

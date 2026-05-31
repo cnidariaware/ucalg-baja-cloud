@@ -1,6 +1,5 @@
 use actix_cors::Cors;
 use actix_web::{App, HttpServer, web};
-use tokio::sync::Mutex;
 
 use ucalg_baja_cloud::ApiDoc;
 use ucalg_baja_cloud::utils::database;
