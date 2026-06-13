@@ -2,9 +2,9 @@ use actix_cors::Cors;
 use actix_web::{App, HttpServer, web};
 
 use ucalg_baja_cloud::ApiDoc;
-use ucalg_baja_cloud::utils::database;
 use ucalg_baja_cloud::merch_shop;
 use ucalg_baja_cloud::sponsors::get_sponsors;
+use ucalg_baja_cloud::utils::database::{self, SpreadSheet};
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
@@ -21,7 +21,7 @@ async fn main() -> std::io::Result<()> {
         println!("Running on port 6526");
     }
 
-    let database = web::Data::new(Mutex::new(database::Database::new()));
+    let database: web::Data<SpreadSheet> = web::Data::new(database::Database::new());
 
     HttpServer::new(move || {
         App::new()

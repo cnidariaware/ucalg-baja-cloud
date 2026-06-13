@@ -1,35 +1,37 @@
-use umya_spreadsheet::Worksheet;
-
-use crate::utils::{ArcVec, merch::{CustomerInfo, MerchItem, OrderItem}, types::BajaResult};
+use crate::utils::{
+    ArcVec,
+    database::db_types::ConnectionConfig,
+    merch::{CustomerInfo, MerchItem, OrderItem},
+    types::BajaResult,
+};
 
 pub trait Database {
-    type Output; // must specify return type here
-    
     fn new() -> Self;
 
     fn init_database(&mut self) -> BajaResult<()>;
 
-    fn get_connection (&self) -> Self::Output;
+    fn get_connection(&self) -> Option<ConnectionConfig>;
+
+    fn save(&self) -> impl std::future::Future<Output = BajaResult<()>> + Send;
 }
 
+// #[async_trait]
 pub trait MerchDatabase: Database {
     fn init_merch_database(&mut self) -> BajaResult<()>;
 
     fn get_merch(&self) -> ArcVec<MerchItem>;
 
-
     fn write_order(
+        &self,
         order: &OrderItem,
-        orders_sheet: &mut Worksheet,
-        row_insert: &u32,
-    ); // turn into result later in case of failure
+    ) -> impl std::future::Future<Output = BajaResult<()>> + Send;
 
     fn write_customer(
+        &self,
         customer_info: &CustomerInfo,
         order_total: &f32,
         coupon: &Option<String>,
-        customer_sheet: &mut Worksheet,
-    ); // turn into result later
+    ) -> impl std::future::Future<Output = BajaResult<()>> + Send;
 
     // todo add readers, query and delete for admin pannel
 }

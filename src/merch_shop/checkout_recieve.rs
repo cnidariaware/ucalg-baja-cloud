@@ -1,17 +1,19 @@
 use std::sync::Arc;
 
-use crate::utils::{ArcString, database::{Database, StorageConfig}};
+use crate::utils::{
+    ArcString,
+    database::{MerchDatabase, SpreadSheet},
+    types::BajaError,
+};
 use actix_web::{
     HttpRequest, HttpResponse, Responder, post,
     web::{self, Data},
 };
 use darkicewolf50_actix_setup::log_incoming_proxy;
 // use serde_json::json;
-use tokio::sync::Mutex;
-use umya_spreadsheet::{Worksheet, reader, writer};
 use uuid::Uuid;
 
-use crate::utils::merch::{OrderRequest, OrderItem, OrderSuccess, CustomerInfo};
+use crate::utils::merch::{CustomerInfo, OrderItem, OrderRequest, OrderSuccess};
 
 /// Recieves incoming merch orders and writes them to a database
 ///
@@ -88,31 +90,32 @@ use crate::utils::merch::{OrderRequest, OrderItem, OrderSuccess, CustomerInfo};
 /// semi-permanent email, do not need to respond but try to be a good alumni
 #[post("/recieve_order")]
 pub async fn recieve_order(
-    data_state: Data<Mutex<StorageConfig>>,
+    data_state: Data<SpreadSheet>, // impl Database + MerchDatabase
     mut order_request: web::Json<OrderRequest>,
     req: HttpRequest,
-) -> impl Responder {
+) -> impl Responder
+where
+    // DB: Database + MerchDatabase + 'static,
+{
     log_incoming_proxy("POST", "/shop/recieve_order", &req);
 
-    let database = data_state.lock().await;
+    let database = data_state.into_inner();
 
-    match database.connection.is_some() {
-        true => (),
-        false => {
-            return HttpResponse::InternalServerError().json(OrderSuccess {
-                success: false,
-                failure: Some("Database doesnt exist, please try again later".to_string()),
-                testing: None,
-            });
-        }
-    }
+    // match database.into_inner() {
+    //     true => (),
+    //     false => {
+    //         return HttpResponse::InternalServerError().json(OrderSuccess {
+    //             success: false,
+    //             failure: Some("Database doesnt exist, please try again later".to_string()),
+    //             testing: None,
+    //         });
+    //     }
+    // }
     order_request.give_uuid();
 
-    let mut book = reader::xlsx::lazy_read(&database.connection.as_ref().unwrap()).unwrap();
-
-    let orders_sheet = book.get_sheet_by_name_mut("orders").unwrap();
+    // let orders_sheet = book.get_sheet_by_name_mut("orders").unwrap();
     // Finds "newest row"
-    let mut order_row_insert = orders_sheet.get_highest_row() + 1;
+    // let mut order_row_insert = orders_sheet.get_highest_row() + 1;
     // Customer Info Part of incoming order
     let orders = order_request.cart_items.clone();
 
@@ -120,21 +123,34 @@ pub async fn recieve_order(
 
     // Writes all orders in the vec to the sheet
     for order in orders {
-        database.write_order(&order, orders_sheet, &order_row_insert);
-        order_row_insert += 1;
+        match database.write_order(&order).await {
+            Err(BajaError::Error(e)) => {
+                println!("Database Error\n {e}");
+                return HttpResponse::InternalServerError().body("Failed to write to the database");
+            }
+            _ => (),
+        }
         order_total += order.price;
     }
 
     // let customer_sheet = book.get_sheet_by_name("customer_info").unwrap();
-    database.write_customer(
-        &order_request.customer_info,
-        &order_total,
-        &order_request.coupon_code,
-        book.get_sheet_by_name_mut("customer_info").unwrap(),
-    );
+    match database
+        .write_customer(
+            &order_request.customer_info,
+            &order_total,
+            &order_request.coupon_code,
+        )
+        .await
+    {
+        Err(BajaError::Error(e)) => {
+            println!("Database Error\n{e}");
+            return HttpResponse::InternalServerError().body("Failed to write to the database");
+        }
+        _ => (),
+    }
 
     // save to workbook
-    writer::xlsx::write(&book, &database.connection.as_ref().unwrap()).unwrap();
+    // writer::xlsx::write(&book, &database.connection.as_ref().unwrap()).unwrap();
 
     HttpResponse::Ok().json(OrderSuccess {
         success: true,

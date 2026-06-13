@@ -1,16 +1,15 @@
-
 use std::path::Path;
 use std::path::PathBuf;
 use std::sync::Arc;
 
 use tokio::sync::Mutex;
-use umya_spreadsheet::Worksheet;
 use umya_spreadsheet::writer;
 
 use crate::utils::ArcVec;
 use crate::utils::Database;
-use crate::utils::database::{SpreadSheet, Sheets};
+use crate::utils::database::ConnectionConfig;
 use crate::utils::database::MerchDatabase;
+use crate::utils::database::{Sheets, SpreadSheet};
 use crate::utils::merch::CustomerInfo;
 use crate::utils::merch::MerchItem;
 use crate::utils::merch::OrderItem;
@@ -20,7 +19,7 @@ use crate::utils::types::BajaResult;
 use umya_spreadsheet::reader::xlsx::lazy_read;
 
 impl Database for SpreadSheet {
-    type Output = Option<Arc<PathBuf>>;
+    // type Output = Arc<PathBuf>;
 
     /// Creates a new connection or xl sheet if one is not already present
     ///
@@ -54,7 +53,7 @@ impl Database for SpreadSheet {
 
         let mut database = SpreadSheet {
             file_path: Some(xl_path),
-            sheets: None
+            sheets: None,
         };
 
         if !&database.file_path.as_deref().unwrap().exists() {
@@ -68,39 +67,59 @@ impl Database for SpreadSheet {
         database
     }
 
-    fn get_connection (&self) -> Self::Output {
-        return self.file_path.as_ref().map(|path| Arc::from(path.to_path_buf()))
+    fn get_connection(&self) -> Option<ConnectionConfig> {
+        self.file_path
+            .as_ref()
+            .map(|path| ConnectionConfig::SpreadSheet(Arc::from(path.to_path_buf())))
     }
 
     fn init_database(&mut self) -> BajaResult<()> {
         self.init_merch_database()
     }
+
+    async fn save(&self) -> BajaResult<()> {
+        // 1. Lock your inner state
+        let sheets = self
+            .sheets
+            .as_ref()
+            .ok_or_else(|| BajaError::Error("Not initialized".to_string()))?
+            .lock()
+            .await;
+
+        // 2. Re-construct or access your master Workbook struct and dump to file
+        if let Some(path) = &self.file_path {
+            // Assuming your setup allows reconstructing/holding the complete `book`
+            umya_spreadsheet::writer::xlsx::write(&sheets.book, path)
+                .map_err(|e| BajaError::Error(e.to_string()))?;
+        }
+        Ok(())
+    }
 }
 
 impl MerchDatabase for SpreadSheet {
-        /// Initalizes the xl file with two sheets, one for order items, and the other for customer info.
-        ///
-        /// # Params
-        ///
-        /// - A database instance
-        ///
-        /// # Returns
-        ///
-        /// - Unit or a string explaining the error so it can be sent to to the front end or dealt with.
-        ///
-        /// # Example
-        ///
-        /// ```rust
-        /// use ucalg_baja_cloud::database::Database;
-        /// let mut database = Database::new();
-        ///
-        /// assert!(database.database_initialize_xl().is_ok());
-        /// ```
-        /// # Author (s)
-        ///
-        /// - Brock <brock@cnidariaware.ca>
-        /// semi-permanent email, do not need to respond but try to be a good alumni
-        fn init_merch_database(&mut self) -> BajaResult<()> {
+    /// Initalizes the xl file with two sheets, one for order items, and the other for customer info.
+    ///
+    /// # Params
+    ///
+    /// - A database instance
+    ///
+    /// # Returns
+    ///
+    /// - Unit or a string explaining the error so it can be sent to to the front end or dealt with.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use ucalg_baja_cloud::database::Database;
+    /// let mut database = Database::new();
+    ///
+    /// assert!(database.database_initialize_xl().is_ok());
+    /// ```
+    /// # Author (s)
+    ///
+    /// - Brock <brock@cnidariaware.ca>
+    /// semi-permanent email, do not need to respond but try to be a good alumni
+    fn init_merch_database(&mut self) -> BajaResult<()> {
         println!("Creating New Sheet");
 
         let mut book = umya_spreadsheet::new_file_empty_worksheet();
@@ -119,7 +138,11 @@ impl MerchDatabase for SpreadSheet {
 
         let custmer_sheet = match book.new_sheet("customer_info") {
             Ok(p) => p,
-            Err(_) => return Err(BajaError::Error("Cannot create customer info sheet".to_string())),
+            Err(_) => {
+                return Err(BajaError::Error(
+                    "Cannot create customer info sheet".to_string(),
+                ));
+            }
         };
 
         custmer_sheet.get_cell_mut("A1").set_value("Order Id");
@@ -148,14 +171,13 @@ impl MerchDatabase for SpreadSheet {
             .get_cell_mut("Q1")
             .set_value("Additional Notes");
 
-        match writer::xlsx::write(&book, self.get_connection().as_ref().unwrap().clone().as_path()) {
+        match writer::xlsx::write(&book, self.file_path.as_ref().unwrap().clone().as_path()) {
             Ok(_) => (),
             Err(_) => return Err(BajaError::Error("Cannot create xl sheet".to_string())),
         };
 
         Ok(())
     }
-
 
     fn get_merch(&self) -> ArcVec<MerchItem> {
         panic!("No Merch Items Stored here, only orders");
@@ -182,13 +204,25 @@ impl MerchDatabase for SpreadSheet {
     /// ```
     /// # Author (s)
     ///
-    /// - Brock <brock@darkicewolf50.dev>
+    /// - Brock <brock@cnidariaware.ca>
     /// semi-permanent email, do not need to respond but try to be a good alumni
-    fn write_order(
+    async fn write_order(
+        &self,
         order: &OrderItem,
-        orders_sheet: &mut Worksheet,
-        row_insert: &u32,
-    ) -> () {
+        // orders_sheet: &mut Worksheet,
+        // row_insert: &u32,
+    ) -> BajaResult<()> {
+        let orders_sheet = &mut self
+            .sheets
+            .as_ref() // Borrow it so we don't move out of `self`
+            .ok_or_else(|| BajaError::Error("Sheets not initialized".to_string()))? // Early returns on None
+            .lock()
+            .await // get lock
+            .orders_sheet;
+
+        let row_insert = orders_sheet.get_highest_row() + 1;
+
+        // let orders_sheet = self.sheets.unwrap_or_else(|| return BajaError::Error("Sheets not initailized".to_string();)).lock().await.orders_sheet.as_ref();
         // order id
         orders_sheet
             .get_cell_mut(format!("A{}", row_insert))
@@ -218,7 +252,10 @@ impl MerchDatabase for SpreadSheet {
         orders_sheet
             .get_cell_mut(format!("F{}", row_insert))
             .set_value_number(order.price);
-        ()
+
+        self.save().await?;
+
+        Ok(())
     }
 
     /// writes customer information to the customer sheet of the xl database
@@ -246,13 +283,21 @@ impl MerchDatabase for SpreadSheet {
     ///
     /// - Brock <brock@darkicewolf50.dev>
     /// semi-permanent email, do not need to respond but try to be a good alumni
-    fn write_customer(
+    async fn write_customer(
+        &self,
         // spread_sheet_config: &SpreadSheetConfig,
         customer_info: &CustomerInfo,
         order_total: &f32,
         coupon: &Option<String>,
-        customer_sheet: &mut Worksheet,
-    ) {
+        // customer_sheet: &mut Worksheet,
+    ) -> BajaResult<()> {
+        let customer_sheet = &mut self
+            .sheets
+            .as_ref()
+            .ok_or_else(|| BajaError::Error("Sheets not initialized".to_string()))? // Early returns on None
+            .lock()
+            .await
+            .customer_sheet;
         // Finds "newest row"
         let customer_row_insert = customer_sheet.get_highest_row() + 1;
 
@@ -358,33 +403,36 @@ impl MerchDatabase for SpreadSheet {
                     .as_deref()
                     .unwrap_or_default(),
             );
+
+        self.save().await?;
+
+        Ok(())
     }
 }
 
-
 impl SpreadSheet {
     fn new_sheets(&mut self) {
-            Some(Arc::from(Mutex::from(
-                Sheets::new(
-                self.file_path.as_deref().unwrap()
-            ).unwrap())));
-    }  
+        Some(Arc::from(Mutex::from(
+            Sheets::new(self.file_path.as_deref().unwrap()).unwrap(),
+        )));
+    }
 }
 
 impl Sheets {
     fn new(file_path: &Path) -> Option<Self> {
-        Some(
-            Sheets {
-                orders_sheet: lazy_read(file_path)
+        Some(Sheets {
+            orders_sheet: lazy_read(file_path)
                 .unwrap()
                 .get_sheet_by_name_mut("orders")
                 .cloned()
                 .unwrap(),
-                customer_sheet: lazy_read(file_path)
-                    .unwrap()
-                    .get_sheet_by_name_mut("customer_info")
-                    .cloned()
-                    .unwrap()
-            })
+            customer_sheet: lazy_read(file_path)
+                .unwrap()
+                .get_sheet_by_name_mut("customer_info")
+                .cloned()
+                .unwrap(),
+
+            book: lazy_read(file_path).unwrap(),
+        })
     }
 }
