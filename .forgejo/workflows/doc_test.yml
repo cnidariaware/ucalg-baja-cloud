@@ -22,7 +22,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Rust setup
-        uses: dtolnay/rust-toolchain@stable
+        uses: https://github.com/dtolnay/rust-toolchain@stable
 
       - name: Check
         run: cargo check
