@@ -29,6 +29,9 @@ jobs:
         with:
           lfs: true
 
+      - name: Rust setup
+        uses: https://github.com/dtolnay/rust-toolchain@stable
+
       # log into docker hub
       - name: Login to Dockerhub
         uses: docker/login-action@v3

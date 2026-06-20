@@ -23,6 +23,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
+      - name: Rust setup
+        uses: https://github.com/dtolnay/rust-toolchain@stable
+
       - name: Check
         run: cargo check
 
