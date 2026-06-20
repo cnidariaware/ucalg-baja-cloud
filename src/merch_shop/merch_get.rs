@@ -1,10 +1,7 @@
-use std::{fs, path::PathBuf};
-
-use actix_web::{HttpRequest, HttpResponse, Responder, get};
+use actix_web::{HttpRequest, HttpResponse, Responder, get, web::Data};
 use darkicewolf50_actix_setup::log_incoming_proxy;
 
-use crate::utils::{ArcVec, merch::MerchItem};
-
+use crate::utils::database::{MerchDatabase, SpreadSheet};
 
 /// Gets all of the merch items available, with all of the assciated detials,
 /// like size, colour images, etc. that are displayed on the merch shop.
@@ -46,20 +43,8 @@ use crate::utils::{ArcVec, merch::MerchItem};
 /// - Name <brock@darkicewolf50.dev>
 /// semi-permanent email, do not need to respond but try to be a good alumni
 #[get("/merch")]
-pub async fn get_merch(req: HttpRequest) -> impl Responder {
+pub async fn get_merch(req: HttpRequest, data_state: Data<SpreadSheet>) -> impl Responder {
     log_incoming_proxy("GET", "/shop/merch", &req);
-    let sponsor_get_path = PathBuf::from(
-        #[cfg(debug_assertions)]
-        "./Database/merch.yaml",
-        #[cfg(not(debug_assertions))]
-        "/Shop/merch.yaml",
-    );
 
-    let yaml = fs::read_to_string(sponsor_get_path).unwrap_or_else(|_| "".to_string());
-
-    let yaml: ArcVec<MerchItem> = serde_saphyr::from_str(&yaml)
-        .unwrap_or_else(|_| vec![])
-        .into();
-
-    HttpResponse::Ok().json(yaml)
+    HttpResponse::Ok().json(data_state.get_merch())
 }

@@ -6,6 +6,7 @@ use umya_spreadsheet::Worksheet;
 pub struct SpreadSheet {
     pub file_path: Option<PathBuf>,
     pub sheets: Option<Arc<Mutex<Sheets>>>,
+    pub merch_file_path: Option<PathBuf>,
 }
 
 #[derive(Debug, Clone)]

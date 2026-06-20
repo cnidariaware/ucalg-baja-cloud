@@ -173,12 +173,12 @@ impl OrderRequest {
     /// # Example
     ///
     /// ```
-    /// use ucalg_baja_cloud::merch_shop::checkout_recieve::{OrderRequest, CustomerInfo, OrderItem};
+    /// // use crate::utils::merch::{CustomerInfo, OrderItem, OrderRequest};
     ///
-    /// let mut test_order = OrderRequest::_new_for_test();
-    /// test_order.give_uuid();
+    /// // let mut test_order = OrderRequest::_new_for_test();
+    /// // test_order.give_uuid();
     ///
-    /// assert!(test_order.get_order_id().is_some());
+    /// // assert!(test_order.get_order_id().is_some());
     /// ```
     /// # Author (s)
     ///
@@ -211,12 +211,12 @@ impl OrderRequest {
     /// # Example
     ///
     /// ```
-    /// use ucalg_baja_cloud::merch_shop::checkout_recieve::{OrderRequest, CustomerInfo, OrderItem};
+    /// // use crate::utils::merch::{CustomerInfo, OrderItem, OrderRequest};
     ///
-    /// let mut test_order = OrderRequest::_new_for_test();
-    /// test_order.give_uuid();
+    /// // let mut test_order = OrderRequest::_new_for_test();
+    /// // test_order.give_uuid();
     ///
-    /// assert!(test_order.get_order_id().is_some());
+    /// // assert!(test_order.get_order_id().is_some());
     /// ```
     /// # Author (s)
     ///

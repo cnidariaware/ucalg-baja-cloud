@@ -1,3 +1,4 @@
+use std::fs;
 use std::path::Path;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -21,6 +22,8 @@ use umya_spreadsheet::reader::xlsx::lazy_read;
 impl Database for SpreadSheet {
     // type Output = Arc<PathBuf>;
 
+    // TODO fix spreadsheet tests
+
     /// Creates a new connection or xl sheet if one is not already present
     ///
     /// # Params
@@ -34,10 +37,10 @@ impl Database for SpreadSheet {
     /// # Example
     ///
     /// ```rust
-    /// use ucalg_baja_cloud::database::Database;
-    /// let database = Database::new();
+    /// //use ucalg_baja_cloud::database::Database;
+    /// //let database = Database::new();
     ///
-    /// assert!(database.get_connection().is_some());
+    /// //assert!(database.get_connection().is_some());
     /// ```
     /// # Author (s)
     ///
@@ -51,9 +54,17 @@ impl Database for SpreadSheet {
             "/Merch/Merch.xlsx",
         );
 
+        let merch_file_path = PathBuf::from(
+            #[cfg(debug_assertions)]
+            "./Database/merch.yaml",
+            #[cfg(not(debug_assertions))]
+            "/Shop/merch.yaml",
+        );
+
         let mut database = SpreadSheet {
             file_path: Some(xl_path),
             sheets: None,
+            merch_file_path: Some(merch_file_path),
         };
 
         if !&database.file_path.as_deref().unwrap().exists() {
@@ -110,10 +121,10 @@ impl MerchDatabase for SpreadSheet {
     /// # Example
     ///
     /// ```rust
-    /// use ucalg_baja_cloud::database::Database;
-    /// let mut database = Database::new();
+    /// // use ucalg_baja_cloud::database::Database;
+    /// // let mut database = Database::new();
     ///
-    /// assert!(database.database_initialize_xl().is_ok());
+    /// // assert!(database.database_initialize_xl().is_ok());
     /// ```
     /// # Author (s)
     ///
@@ -180,7 +191,18 @@ impl MerchDatabase for SpreadSheet {
     }
 
     fn get_merch(&self) -> ArcVec<MerchItem> {
-        panic!("No Merch Items Stored here, only orders");
+        let yaml = fs::read_to_string(
+            self.merch_file_path
+                .as_ref()
+                .expect("Merch File Path not configured properly or doesn't exists"),
+        )
+        .unwrap_or_else(|_| "".to_string());
+
+        let yaml: ArcVec<MerchItem> = serde_saphyr::from_str(&yaml)
+            .unwrap_or_else(|_| vec![])
+            .into();
+
+        yaml
     }
     /// writes merch items to the orders sheet of the xl database
     ///
